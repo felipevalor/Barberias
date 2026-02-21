@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply antialiased;
+  }
+}
+
+/* Fixes para que React Big Calendar se vea bien con Tailwind y Dark Mode */
+.rbc-calendar {
+  @apply font-sans border-none;
+}
+
+.rbc-header {
+  @apply py-3 bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold;
+}
+
+.rbc-allday-cell {
+  @apply hidden;
+}
+
+.rbc-time-view .rbc-header {
+  @apply border-b border-gray-200 dark:border-gray-700;
+}
+
+.rbc-time-content {
+  @apply border-t-0 border-gray-200 dark:border-gray-700;
+}
+
+.rbc-timeslot-group {
+  @apply border-b border-gray-200 dark:border-gray-700;
+}
+
+.rbc-time-slot {
+  @apply border-t-0;
+}
+
+.rbc-day-slot .rbc-time-slot {
+  @apply border-t border-gray-100 dark:border-gray-800;
+}
+
+.rbc-today {
+  @apply bg-blue-50/50 dark:bg-blue-900/10;
+}
+
+.rbc-event {
+  @apply shadow-sm transition-all hover:scale-[1.01] hover:shadow-md cursor-pointer;
+}
+
+.rbc-toolbar button {
+  @apply border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors;
+}
+
+.rbc-toolbar button.rbc-active {
+  @apply bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800 shadow-none;
+}

@@ -1,0 +1,20 @@
+0 verbose cli /usr/local/bin/node /usr/local/bin/npm
+1 info using npm@11.6.2
+2 info using node@v24.12.0
+3 silly config load:file:/usr/local/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/felipevalor/Downloads/Barberias/Barberias/frontend/.npmrc
+5 silly config load:file:/Users/felipevalor/.npmrc
+6 silly config load:file:/usr/local/etc/npmrc
+7 verbose title npm ls react-dnd react-dnd-html5-backend
+8 verbose argv "ls" "react-dnd" "react-dnd-html5-backend"
+9 verbose logfile logs-max:10 dir:/Users/felipevalor/Downloads/Barberias/Barberias/.npm-cache/_logs/2026-02-21T03_02_27_871Z-
+10 verbose logfile /Users/felipevalor/Downloads/Barberias/Barberias/.npm-cache/_logs/2026-02-21T03_02_27_871Z-debug-0.log
+11 silly logfile start cleaning logs, removing 1 files
+12 silly packumentCache heap:2348810240 maxSize:587202560 maxEntrySize:293601280
+13 silly logfile done cleaning log files
+14 verbose cwd /Users/felipevalor/Downloads/Barberias/Barberias/frontend
+15 verbose os Darwin 25.2.0
+16 verbose node v24.12.0
+17 verbose npm  v11.6.2
+18 verbose exit 1
+19 verbose code 1

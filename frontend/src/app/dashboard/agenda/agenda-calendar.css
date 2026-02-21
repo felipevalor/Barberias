@@ -1,0 +1,237 @@
+/* ── Agenda Calendar – Custom Styles ────────────────────────────────── */
+
+/* Base overrides */
+.rbc-calendar {
+    font-family: inherit;
+}
+
+.rbc-toolbar {
+    margin-bottom: 16px;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.rbc-toolbar button {
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #374151;
+    transition: all 0.15s;
+    cursor: pointer;
+}
+
+.rbc-toolbar button:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.rbc-toolbar button.rbc-active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Header cells */
+.rbc-header {
+    padding: 10px 4px;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    border-bottom: 2px solid #e2e8f0 !important;
+    background: #f8fafc;
+}
+
+/* Time gutter */
+.rbc-time-gutter .rbc-timeslot-group {
+    min-height: 60px;
+}
+
+.rbc-time-gutter .rbc-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    padding: 0 8px;
+}
+
+/* Time slots */
+.rbc-timeslot-group {
+    min-height: 60px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.rbc-time-slot {
+    border-top: 1px solid #f8fafc;
+}
+
+.rbc-day-slot .rbc-time-slot {
+    border-top: 1px dotted #e2e8f0;
+}
+
+/* Events */
+.rbc-event {
+    border-radius: 6px !important;
+    border: none !important;
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+    transition: transform 0.1s, box-shadow 0.1s !important;
+}
+
+.rbc-event:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    z-index: 10 !important;
+}
+
+.rbc-event-label {
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    opacity: 0.9;
+}
+
+.rbc-event-content {
+    font-size: 12px !important;
+}
+
+/* Background events (bloqueos) */
+.rbc-background-event {
+    background: repeating-linear-gradient(45deg,
+            rgba(148, 163, 184, 0.15),
+            rgba(148, 163, 184, 0.15) 4px,
+            rgba(148, 163, 184, 0.08) 4px,
+            rgba(148, 163, 184, 0.08) 8px) !important;
+    border: 1px dashed #94a3b8 !important;
+    border-radius: 4px !important;
+    opacity: 1 !important;
+    pointer-events: none !important;
+    color: #64748b !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+}
+
+/* Current time indicator */
+.rbc-current-time-indicator {
+    background-color: #ef4444;
+    height: 2px;
+}
+
+.rbc-current-time-indicator::before {
+    content: '';
+    position: absolute;
+    left: -5px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+}
+
+/* Today highlight */
+.rbc-today {
+    background-color: rgba(59, 130, 246, 0.04) !important;
+}
+
+/* Selection */
+.rbc-slot-selection {
+    background: rgba(59, 130, 246, 0.15) !important;
+    border: 2px dashed #3b82f6 !important;
+    border-radius: 4px;
+}
+
+/* Drag & Drop styles */
+.rbc-addons-dnd .rbc-addons-dnd-row-body,
+.rbc-addons-dnd .rbc-addons-dnd-drag-row {
+    position: relative;
+}
+
+.rbc-addons-dnd-dragged-event {
+    opacity: 0 !important;
+}
+
+.rbc-addons-dnd-drag-preview {
+    opacity: 0.7 !important;
+    border: 2px solid #3b82f6 !important;
+}
+
+.rbc-addons-dnd-resize-ns-icon {
+    display: none;
+}
+
+/* ── Dark mode overrides ───────────────────────────────────────────── */
+.dark .rbc-toolbar button {
+    background: #1f2937;
+    color: #d1d5db;
+    border-color: #374151;
+}
+
+.dark .rbc-toolbar button:hover {
+    background: #374151;
+    border-color: #4b5563;
+}
+
+.dark .rbc-toolbar button.rbc-active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+.dark .rbc-header {
+    background: #111827;
+    color: #9ca3af;
+    border-bottom-color: #374151 !important;
+}
+
+.dark .rbc-time-content {
+    border-top: 2px solid #374151;
+}
+
+.dark .rbc-time-gutter .rbc-label {
+    color: #6b7280;
+}
+
+.dark .rbc-timeslot-group {
+    border-bottom-color: #1f2937;
+}
+
+.dark .rbc-day-slot .rbc-time-slot {
+    border-top-color: #1f2937;
+}
+
+.dark .rbc-time-view,
+.dark .rbc-time-content,
+.dark .rbc-time-header {
+    border-color: #374151;
+}
+
+.dark .rbc-day-bg+.rbc-day-bg {
+    border-left-color: #374151;
+}
+
+.dark .rbc-today {
+    background-color: rgba(59, 130, 246, 0.08) !important;
+}
+
+.dark .rbc-background-event {
+    background: repeating-linear-gradient(45deg,
+            rgba(75, 85, 99, 0.3),
+            rgba(75, 85, 99, 0.3) 4px,
+            rgba(75, 85, 99, 0.15) 4px,
+            rgba(75, 85, 99, 0.15) 8px) !important;
+    border-color: #4b5563 !important;
+    color: #9ca3af !important;
+}
+
+.dark .rbc-slot-selection {
+    background: rgba(59, 130, 246, 0.25) !important;
+}
+
+.dark .rbc-off-range-bg {
+    background: #0f172a;
+}

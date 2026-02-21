@@ -1,0 +1,182 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String    @id @default(uuid())
+  nombre     String
+  email      String    @unique
+  password   String
+  role       String    @default("CLIENTE")
+  barberiaId String?
+  barberia   Barberia? @relation("BarberiaUsers", fields: [barberiaId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  
+  // Back relation for Admin
+  barberiaAdmin Barberia? @relation("BarberiaAdmin")
+  BarberoProfile BarberoProfile?
+}
+
+model Barberia {
+  id        String   @id @default(uuid())
+  nombre    String
+  adminId   String?  @unique
+  admin     User?    @relation("BarberiaAdmin", fields: [adminId], references: [id])
+  users        User[]       @relation("BarberiaUsers")
+  servicios    Servicio[]
+  clientes     Cliente[]
+  turnos       Turno[]
+  metodosPago  MetodoPago[]
+  transacciones Transaccion[]
+  productos    Producto[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model BarberoProfile {
+  id            String    @id @default(uuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+  telefono      String?
+  especialidad  String?
+  horarios      HorarioLaboral[]
+  ausencias     Ausencia[]
+  servicios     Servicio[]
+  turnos        Turno[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Servicio {
+  id              String           @id @default(uuid())
+  barberiaId      String
+  barberia        Barberia         @relation(fields: [barberiaId], references: [id])
+  nombre          String
+  descripcion     String?
+  precio          Float
+  duracionMinutos Int
+  activo          Boolean          @default(true) // Baja lógica
+  barberos        BarberoProfile[] // Relación M-N implícita
+  turnos          Turno[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model Cliente {
+  id                String    @id @default(uuid())
+  barberiaId        String
+  barberia          Barberia  @relation(fields: [barberiaId], references: [id])
+  nombre            String
+  email             String?
+  telefono          String?
+  notasPreferencias String?
+  turnos            Turno[]
+  transacciones     Transaccion[]
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Turno {
+  id              String         @id @default(uuid())
+  barberiaId      String
+  barberia        Barberia       @relation(fields: [barberiaId], references: [id])
+  barberoId       String
+  barbero         BarberoProfile @relation(fields: [barberoId], references: [id])
+  clienteId       String
+  cliente         Cliente        @relation(fields: [clienteId], references: [id])
+  servicioId      String
+  servicio        Servicio       @relation(fields: [servicioId], references: [id])
+  fechaHoraInicio DateTime
+  fechaHoraFin    DateTime
+  estado          String         @default("PENDIENTE") // PENDIENTE, EN_CURSO, FINALIZADO, CANCELADO, NO_ASISTIO
+  transacciones   Transaccion[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model MetodoPago {
+  id            String        @id @default(uuid())
+  barberiaId    String
+  barberia      Barberia      @relation(fields: [barberiaId], references: [id])
+  nombre        String
+  activo        Boolean       @default(true)
+  transacciones Transaccion[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Transaccion {
+  id            String      @id @default(uuid())
+  barberiaId    String
+  barberia      Barberia    @relation(fields: [barberiaId], references: [id])
+  turnoId       String?
+  turno         Turno?      @relation(fields: [turnoId], references: [id])
+  clienteId     String?
+  cliente       Cliente?    @relation(fields: [clienteId], references: [id])
+  monto         Float
+  tipo          String      // INGRESO, EGRESO
+  metodoPagoId  String
+  metodoPago    MetodoPago  @relation(fields: [metodoPagoId], references: [id])
+  descripcion   String?
+  fecha         DateTime    @default(now())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model HorarioLaboral {
+  id          String    @id @default(uuid())
+  barberoId   String
+  barbero     BarberoProfile @relation(fields: [barberoId], references: [id])
+  diaSemana   Int       // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+  horaInicio  String    // Formato "HH:MM" ej "09:00"
+  horaFin     String    // Formato "HH:MM" ej "18:00"
+  descansos   Descanso[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Descanso {
+  id          String         @id @default(uuid())
+  horarioId   String
+  horario     HorarioLaboral @relation(fields: [horarioId], references: [id], onDelete: Cascade)
+  horaInicio  String         // Formato "HH:MM" ej "13:00"
+  horaFin     String         // Formato "HH:MM" ej "14:00"
+}
+
+model Ausencia {
+  id          String         @id @default(uuid())
+  barberoId   String
+  barbero     BarberoProfile @relation(fields: [barberoId], references: [id])
+  fechaInicio DateTime
+  fechaFin    DateTime
+  motivo      String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model Producto {
+  id            String    @id @default(uuid())
+  barberiaId    String
+  barberia      Barberia  @relation(fields: [barberiaId], references: [id])
+  nombre        String
+  descripcion   String?
+  precioVenta   Float
+  stockActual   Int       @default(0)
+  stockMinimo   Int       @default(0)
+  imagen        String?
+  activo        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
