@@ -4,11 +4,15 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { Package, Search, Plus, AlertTriangle, Edit, Trash2 } from 'lucide-react';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 export default function ProductosPage() {
     const [productos, setProductos] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<{ id: string, nombre: string } | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     const { token, user } = useAuth();
     const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
 
@@ -39,16 +43,27 @@ export default function ProductosPage() {
         }
     }, [token, searchQuery]);
 
-    const handleDelete = async (id: string, nombre: string) => {
-        if (!window.confirm(`¿Estás seguro de eliminar el producto "${nombre}"?`)) return;
+    const handleDeleteClick = (id: string, nombre: string) => {
+        setProductToDelete({ id, nombre });
+        setIsConfirmOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!productToDelete) return;
+
+        setIsDeleting(true);
         try {
-            const res = await fetch(`http://localhost:3001/api/productos/${id}`, {
+            const res = await fetch(`http://localhost:3001/api/productos/${productToDelete.id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) fetchProductos();
         } catch (err) {
             console.error('Error eliminando producto', err);
+        } finally {
+            setIsDeleting(false);
+            setIsConfirmOpen(false);
+            setProductToDelete(null);
         }
     };
 
@@ -147,7 +162,7 @@ export default function ProductosPage() {
                                                             <Edit className="w-4 h-4" />
                                                         </button>
                                                         <button
-                                                            onClick={() => handleDelete(prod.id, prod.nombre)}
+                                                            onClick={() => handleDeleteClick(prod.id, prod.nombre)}
                                                             className="text-gray-400 hover:text-red-600 transition p-2"
                                                             title="Eliminar producto"
                                                         >
@@ -164,6 +179,17 @@ export default function ProductosPage() {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="¿Eliminar producto?"
+                message={`¿Estás seguro de que deseas eliminar "${productToDelete?.nombre}" del inventario? Esta acción es irreversible.`}
+                confirmText="Eliminar Producto"
+                type="danger"
+                loading={isDeleting}
+            />
         </div>
     );
 }

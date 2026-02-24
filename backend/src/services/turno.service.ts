@@ -13,11 +13,17 @@ export class TurnoService {
         return (hours || 0) * 60 + (minutes || 0);
     }
 
+    private formatMins(mins: number): string {
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+
     /**
-     * Obtiene los minutos desde el inicio del día para una fecha dada en UTC
+     * Obtiene los minutos desde el inicio del día para una fecha dada (Local)
      */
-    private dateToMinutesUTC(date: Date): number {
-        return date.getUTCHours() * 60 + date.getUTCMinutes();
+    private dateToMinutes(date: Date): number {
+        return date.getHours() * 60 + date.getMinutes();
     }
 
     // ── Validaciones privadas ──────────────────────────────────────────
@@ -27,8 +33,8 @@ export class TurnoService {
      * y no se superponga con descansos ni ausencias.
      */
     private async validarHorarioLaboral(tx: any, barberoId: string, fechaInicio: Date, fechaFin: Date) {
-        // Usamos UTC para consistency
-        const diaSemana = fechaInicio.getUTCDay();
+        // Usamos la fecha local para determinar el día de la semana
+        const diaSemana = fechaInicio.getDay();
 
         const horario = await tx.horarioLaboral.findFirst({
             where: { barberoId, diaSemana },
@@ -36,16 +42,17 @@ export class TurnoService {
         });
 
         if (!horario) {
-            throw new Error('El barbero no trabaja este día');
+            const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+            throw new Error(`El barbero no trabaja este día (${dias[diaSemana]})`);
         }
 
-        const inicioTurnoMins = this.dateToMinutesUTC(fechaInicio);
-        const finTurnoMins = this.dateToMinutesUTC(fechaFin);
+        const inicioTurnoMins = this.dateToMinutes(fechaInicio);
+        const finTurnoMins = this.dateToMinutes(fechaFin);
         const inicioLaboralMins = this.timeToMinutes(horario.horaInicio);
         const finLaboralMins = this.timeToMinutes(horario.horaFin);
 
         if (inicioTurnoMins < inicioLaboralMins || finTurnoMins > finLaboralMins) {
-            throw new Error(`El turno está fuera del horario laboral (${horario.horaInicio} - ${horario.horaFin})`);
+            throw new Error(`El turno (${this.formatMins(inicioTurnoMins)} - ${this.formatMins(finTurnoMins)}) está fuera del horario laboral (${horario.horaInicio} - ${horario.horaFin})`);
         }
 
         // Verificar descansos

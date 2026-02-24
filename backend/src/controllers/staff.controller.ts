@@ -32,6 +32,17 @@ export class StaffController {
         }
     }
 
+    async getBarbero(req: AuthRequest, res: Response) {
+        try {
+            const id = req.params.id as string; // profileId
+            const barbero = await staffService.getBarbero(id);
+            if (!barbero) return res.status(404).json({ error: 'Barbero no encontrado' });
+            res.status(200).json(barbero);
+        } catch (error: any) {
+            res.status(500).json({ error: 'Error al obtener barbero' });
+        }
+    }
+
     async setHorarios(req: AuthRequest, res: Response) {
         try {
             const id = req.params.id as string; // profileId
@@ -63,6 +74,17 @@ export class StaffController {
             res.status(200).json({ message: 'Barbero dado de baja exitosamente' });
         } catch (error: any) {
             res.status(400).json({ error: 'Error al dar de baja al barbero' });
+        }
+    }
+
+    async updateBarbero(req: AuthRequest, res: Response) {
+        try {
+            const id = req.params.id as string; // profileId
+            const data = req.body;
+            const result = await staffService.updateBarbero(id, data);
+            res.status(200).json(result);
+        } catch (error: any) {
+            res.status(400).json({ error: error.message || 'Error al actualizar barbero' });
         }
     }
 }

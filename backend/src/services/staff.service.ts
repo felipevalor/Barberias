@@ -87,10 +87,55 @@ export class StaffService {
         });
     }
 
+    async getBarbero(profileId: string) {
+        return prisma.barberoProfile.findUnique({
+            where: { id: profileId },
+            include: {
+                user: true,
+                horarios: {
+                    include: { descansos: true }
+                },
+                ausencias: true
+            }
+        });
+    }
+
     async deleteBarbero(profileId: string) {
         return prisma.barberoProfile.update({
             where: { id: profileId },
             data: { activo: false }
+        });
+    }
+
+    async updateBarbero(profileId: string, data: { nombre?: string, email?: string, telefono?: string, especialidad?: string }) {
+        const profile = await prisma.barberoProfile.findUnique({
+            where: { id: profileId },
+            include: { user: true }
+        });
+
+        if (!profile) throw new Error('Perfil de barbero no encontrado');
+
+        return prisma.$transaction(async (tx: any) => {
+            // Actualizar User (nombre/email)
+            if (data.nombre || data.email) {
+                await tx.user.update({
+                    where: { id: profile.userId },
+                    data: {
+                        nombre: data.nombre,
+                        email: data.email
+                    }
+                });
+            }
+
+            // Actualizar Profile (telefono/especialidad)
+            return tx.barberoProfile.update({
+                where: { id: profileId },
+                data: {
+                    telefono: data.telefono,
+                    especialidad: data.especialidad
+                },
+                include: { user: true }
+            });
         });
     }
 

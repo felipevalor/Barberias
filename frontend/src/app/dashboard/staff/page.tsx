@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { PlusCircle, CalendarClock, Trash2, Edit, Scissors, Phone, BadgeCheck, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Button from '@/components/ui/Button';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -14,6 +15,8 @@ export default function StaffPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [staffToDelete, setStaffToDelete] = useState<{ id: string, name: string } | null>(null);
     const { token } = useAuth();
 
     const fetchBarberos = async () => {
@@ -36,9 +39,16 @@ export default function StaffPage() {
         if (token) fetchBarberos();
     }, [token]);
 
-    const handleDelete = async (profileId: string, name: string) => {
-        if (!confirm(`¿Estás seguro de que deseas dar de baja a ${name}? Esta acción no eliminará sus turnos pasados.`)) return;
+    const handleDeleteClick = (id: string, name: string) => {
+        setStaffToDelete({ id, name });
+        setIsConfirmOpen(true);
+    };
 
+    const handleDeleteConfirm = async () => {
+        if (!staffToDelete) return;
+
+        const { id: profileId, name } = staffToDelete;
+        setIsConfirmOpen(false);
         setDeletingId(profileId);
         try {
             const res = await fetch(`${API}/staff/${profileId}`, {
@@ -123,7 +133,7 @@ export default function StaffPage() {
                                             <Edit className="w-4 h-4" />
                                         </button>
                                         <button
-                                            onClick={() => handleDelete(barbero.BarberoProfile?.id, barbero.nombre)}
+                                            onClick={() => handleDeleteClick(barbero.BarberoProfile?.id, barbero.nombre)}
                                             disabled={deletingId === barbero.BarberoProfile?.id}
                                             className="p-1.5 text-slate-400 hover:text-red-600 rounded-md hover:bg-slate-50"
                                             title="Baja"
@@ -164,6 +174,16 @@ export default function StaffPage() {
                     )}
                 </div>
             )}
+
+            <ConfirmModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="¿Dar de baja?"
+                message={`¿Estás seguro de que deseas dar de baja a ${staffToDelete?.name}? Esta acción no eliminará sus turnos pasados.`}
+                confirmText="Dar de Baja"
+                type="danger"
+            />
         </div>
     );
 }
