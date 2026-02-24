@@ -5,15 +5,15 @@
 4 silly config load:file:/Users/felipevalor/Downloads/Barberias/Barberias/backend/.npmrc
 5 silly config load:file:/Users/felipevalor/.npmrc
 6 silly config load:file:/usr/local/etc/npmrc
-7 verbose title npm exec ts-node-dev src/index.ts
-8 verbose argv "exec" "--" "ts-node-dev" "src/index.ts"
-9 verbose logfile logs-max:10 dir:/Users/felipevalor/Downloads/Barberias/Barberias/.npm-cache/_logs/2026-02-21T03_08_42_724Z-
-10 verbose logfile /Users/felipevalor/Downloads/Barberias/Barberias/.npm-cache/_logs/2026-02-21T03_08_42_724Z-debug-0.log
+7 verbose title npm exec prisma migrate dev --name add_activo_to_barberoprofile
+8 verbose argv "exec" "--" "prisma" "migrate" "dev" "--name" "add_activo_to_barberoprofile"
+9 verbose logfile logs-max:10 dir:/Users/felipevalor/Downloads/Barberias/Barberias/.npm-cache/_logs/2026-02-24T15_58_57_745Z-
+10 verbose logfile /Users/felipevalor/Downloads/Barberias/Barberias/.npm-cache/_logs/2026-02-24T15_58_57_745Z-debug-0.log
 11 silly logfile start cleaning logs, removing 1 files
 12 silly logfile done cleaning log files
 13 verbose cwd /Users/felipevalor/Downloads/Barberias/Barberias/backend
-14 verbose os Darwin 25.2.0
+14 verbose os Darwin 25.3.0
 15 verbose node v24.12.0
 16 verbose npm  v11.6.2
-17 verbose exit 0
-18 info ok
+17 verbose exit 130
+18 verbose code 130

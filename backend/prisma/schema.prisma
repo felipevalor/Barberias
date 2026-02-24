@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,169 +8,168 @@ datasource db {
 }
 
 model User {
-  id         String    @id @default(uuid())
-  nombre     String
-  email      String    @unique
-  password   String
-  role       String    @default("CLIENTE")
-  barberiaId String?
-  barberia   Barberia? @relation("BarberiaUsers", fields: [barberiaId], references: [id])
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  
-  // Back relation for Admin
-  barberiaAdmin Barberia? @relation("BarberiaAdmin")
+  id             String          @id @default(uuid())
+  nombre         String
+  email          String          @unique
+  password       String
+  role           String          @default("CLIENTE")
+  barberiaId     String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  barberiaAdmin  Barberia?       @relation("BarberiaAdmin")
   BarberoProfile BarberoProfile?
+  barberia       Barberia?       @relation("BarberiaUsers", fields: [barberiaId], references: [id])
 }
 
 model Barberia {
-  id        String   @id @default(uuid())
-  nombre    String
-  adminId   String?  @unique
-  admin     User?    @relation("BarberiaAdmin", fields: [adminId], references: [id])
-  users        User[]       @relation("BarberiaUsers")
-  servicios    Servicio[]
-  clientes     Cliente[]
-  turnos       Turno[]
-  metodosPago  MetodoPago[]
+  id            String        @id @default(uuid())
+  nombre        String
+  adminId       String?       @unique
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  admin         User?         @relation("BarberiaAdmin", fields: [adminId], references: [id])
+  clientes      Cliente[]
+  metodosPago   MetodoPago[]
+  productos     Producto[]
+  servicios     Servicio[]
   transacciones Transaccion[]
-  productos    Producto[]
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  turnos        Turno[]
+  users         User[]        @relation("BarberiaUsers")
 }
 
 model BarberoProfile {
-  id            String    @id @default(uuid())
-  userId        String    @unique
-  user          User      @relation(fields: [userId], references: [id])
-  telefono      String?
-  especialidad  String?
-  horarios      HorarioLaboral[]
-  ausencias     Ausencia[]
-  servicios     Servicio[]
-  turnos        Turno[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String           @id @default(uuid())
+  userId       String           @unique
+  telefono     String?
+  especialidad String?
+  activo       Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  ausencias    Ausencia[]
+  user         User             @relation(fields: [userId], references: [id])
+  horarios     HorarioLaboral[]
+  turnos       Turno[]
+  servicios    Servicio[]       @relation("BarberoProfileToServicio")
 }
 
 model Servicio {
   id              String           @id @default(uuid())
   barberiaId      String
-  barberia        Barberia         @relation(fields: [barberiaId], references: [id])
   nombre          String
   descripcion     String?
   precio          Float
   duracionMinutos Int
-  activo          Boolean          @default(true) // Baja lógica
-  barberos        BarberoProfile[] // Relación M-N implícita
-  turnos          Turno[]
+  activo          Boolean          @default(true)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  barberia        Barberia         @relation(fields: [barberiaId], references: [id])
+  turnos          Turno[]
+  barberos        BarberoProfile[] @relation("BarberoProfileToServicio")
 }
 
 model Cliente {
-  id                String    @id @default(uuid())
+  id                String        @id @default(uuid())
   barberiaId        String
-  barberia          Barberia  @relation(fields: [barberiaId], references: [id])
   nombre            String
   email             String?
   telefono          String?
   notasPreferencias String?
-  turnos            Turno[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  barberia          Barberia      @relation(fields: [barberiaId], references: [id])
   transacciones     Transaccion[]
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  turnos            Turno[]
 }
 
 model Turno {
   id              String         @id @default(uuid())
   barberiaId      String
-  barberia        Barberia       @relation(fields: [barberiaId], references: [id])
   barberoId       String
-  barbero         BarberoProfile @relation(fields: [barberoId], references: [id])
   clienteId       String
-  cliente         Cliente        @relation(fields: [clienteId], references: [id])
   servicioId      String
-  servicio        Servicio       @relation(fields: [servicioId], references: [id])
   fechaHoraInicio DateTime
   fechaHoraFin    DateTime
-  estado          String         @default("PENDIENTE") // PENDIENTE, EN_CURSO, FINALIZADO, CANCELADO, NO_ASISTIO
-  transacciones   Transaccion[]
+  estado          String         @default("PENDIENTE")
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+  transacciones   Transaccion[]
+  servicio        Servicio       @relation(fields: [servicioId], references: [id])
+  cliente         Cliente        @relation(fields: [clienteId], references: [id])
+  barbero         BarberoProfile @relation(fields: [barberoId], references: [id])
+  barberia        Barberia       @relation(fields: [barberiaId], references: [id])
 }
 
 model MetodoPago {
   id            String        @id @default(uuid())
   barberiaId    String
-  barberia      Barberia      @relation(fields: [barberiaId], references: [id])
   nombre        String
   activo        Boolean       @default(true)
-  transacciones Transaccion[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  barberia      Barberia      @relation(fields: [barberiaId], references: [id])
+  transacciones Transaccion[]
 }
 
 model Transaccion {
-  id            String      @id @default(uuid())
-  barberiaId    String
-  barberia      Barberia    @relation(fields: [barberiaId], references: [id])
-  turnoId       String?
-  turno         Turno?      @relation(fields: [turnoId], references: [id])
-  clienteId     String?
-  cliente       Cliente?    @relation(fields: [clienteId], references: [id])
-  monto         Float
-  tipo          String      // INGRESO, EGRESO
-  metodoPagoId  String
-  metodoPago    MetodoPago  @relation(fields: [metodoPagoId], references: [id])
-  descripcion   String?
-  fecha         DateTime    @default(now())
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id           String     @id @default(uuid())
+  barberiaId   String
+  turnoId      String?
+  clienteId    String?
+  monto        Float
+  tipo         String
+  metodoPagoId String
+  descripcion  String?
+  fecha        DateTime   @default(now())
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  metodoPago   MetodoPago @relation(fields: [metodoPagoId], references: [id])
+  cliente      Cliente?   @relation(fields: [clienteId], references: [id])
+  turno        Turno?     @relation(fields: [turnoId], references: [id])
+  barberia     Barberia   @relation(fields: [barberiaId], references: [id])
 }
 
 model HorarioLaboral {
-  id          String    @id @default(uuid())
-  barberoId   String
-  barbero     BarberoProfile @relation(fields: [barberoId], references: [id])
-  diaSemana   Int       // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
-  horaInicio  String    // Formato "HH:MM" ej "09:00"
-  horaFin     String    // Formato "HH:MM" ej "18:00"
-  descansos   Descanso[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String         @id @default(uuid())
+  barberoId  String
+  diaSemana  Int
+  horaInicio String
+  horaFin    String
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  descansos  Descanso[]
+  barbero    BarberoProfile @relation(fields: [barberoId], references: [id])
 }
 
 model Descanso {
-  id          String         @id @default(uuid())
-  horarioId   String
-  horario     HorarioLaboral @relation(fields: [horarioId], references: [id], onDelete: Cascade)
-  horaInicio  String         // Formato "HH:MM" ej "13:00"
-  horaFin     String         // Formato "HH:MM" ej "14:00"
+  id         String         @id @default(uuid())
+  horarioId  String
+  horaInicio String
+  horaFin    String
+  horario    HorarioLaboral @relation(fields: [horarioId], references: [id], onDelete: Cascade)
 }
 
 model Ausencia {
   id          String         @id @default(uuid())
   barberoId   String
-  barbero     BarberoProfile @relation(fields: [barberoId], references: [id])
   fechaInicio DateTime
   fechaFin    DateTime
   motivo      String?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+  barbero     BarberoProfile @relation(fields: [barberoId], references: [id])
 }
 
 model Producto {
-  id            String    @id @default(uuid())
-  barberiaId    String
-  barberia      Barberia  @relation(fields: [barberiaId], references: [id])
-  nombre        String
-  descripcion   String?
-  precioVenta   Float
-  stockActual   Int       @default(0)
-  stockMinimo   Int       @default(0)
-  imagen        String?
-  activo        Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String   @id @default(uuid())
+  barberiaId  String
+  nombre      String
+  descripcion String?
+  precioVenta Float
+  stockActual Int      @default(0)
+  stockMinimo Int      @default(0)
+  imagen      String?
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  barberia    Barberia @relation(fields: [barberiaId], references: [id])
 }

@@ -1,0 +1,12 @@
+2026-02-23T19:25:01.898Z - --- START createBarbero ---
+2026-02-23T19:25:01.899Z - Target email: [felivalor@gmail.com]
+2026-02-23T19:25:01.899Z - Barberia ID: b73027dd-0f0c-490c-a28d-b9be3140f517
+2026-02-23T19:25:02.007Z - Existing user found: Yes (3a9b5526-4745-44db-be27-bec137e57bf2)
+2026-02-23T19:25:02.007Z - Existing user barberiaId: 191ced70-f68c-40b9-b6ec-efd6b7340053
+2026-02-23T19:25:02.008Z - Has profile: true
+2026-02-23T19:26:32.187Z - --- START createBarbero ---
+2026-02-23T19:26:32.188Z - Target email: [felivalor@gmail.com]
+2026-02-23T19:26:32.189Z - Barberia ID: b73027dd-0f0c-490c-a28d-b9be3140f517
+2026-02-23T19:26:32.227Z - Existing user found: Yes (3a9b5526-4745-44db-be27-bec137e57bf2)
+2026-02-23T19:26:32.227Z - Existing user barberiaId: 191ced70-f68c-40b9-b6ec-efd6b7340053
+2026-02-23T19:26:32.227Z - Has profile: true

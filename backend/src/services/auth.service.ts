@@ -65,6 +65,25 @@ export class AuthService {
 
         return { token, user: { id: user.id, nombre: user.nombre, role: user.role, barberiaId: user.barberiaId } };
     }
+
+    async changePassword(userId: string, currentPassword: string, newPassword: string) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            throw new Error('Usuario no encontrado');
+        }
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            throw new Error('La contraseña actual es incorrecta');
+        }
+
+        const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+        return prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedNewPassword },
+        });
+    }
 }
 
 export const authService = new AuthService();

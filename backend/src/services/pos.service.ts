@@ -13,7 +13,7 @@ export class POSService {
         });
     }
 
-    async checkoutTurno(barberiaId: string, turnoId: string, data: { metodoPagoId: string, montoCobrado: number, propina?: number }) {
+    async checkoutTurno(barberiaId: string, turnoId: string, data: { metodoPagoId: string, montoCobrado: number, propina?: number, productos?: { id: string, cantidad: number }[] }) {
         // 1. Obtener turno y verificar que pertenece a la barberia
         const turno = await prisma.turno.findFirst({
             where: { id: turnoId, barberiaId },
@@ -26,12 +26,12 @@ export class POSService {
         // 2. Transacción Atómica
         return prisma.$transaction(async (tx) => {
             // 2.a Marcar el turno como finalizado
-            await tx.turno.update({
+            const updatedTurno = await tx.turno.update({
                 where: { id: turnoId },
                 data: { estado: 'FINALIZADO' }
             });
 
-            // 2.b Generar Ingreso Principal
+            // 2.b Generar Ingreso Principal (Servicio)
             const txIngreso = await tx.transaccion.create({
                 data: {
                     barberiaId,
@@ -56,6 +56,39 @@ export class POSService {
                         descripcion: `Propina - Barbero: ${turno.barberoId}`
                     }
                 });
+            }
+
+            // 2.d Procesar Productos (si hay)
+            if (data.productos && data.productos.length > 0) {
+                for (const p of data.productos) {
+                    const producto = await tx.producto.findFirst({
+                        where: { id: p.id, barberiaId }
+                    });
+
+                    if (!producto) throw new Error(`Producto ${p.id} no encontrado`);
+                    if (producto.stockActual < p.cantidad) {
+                        throw new Error(`Stock insuficiente para ${producto.nombre}. Disponible: ${producto.stockActual}`);
+                    }
+
+                    // Descontar stock
+                    await tx.producto.update({
+                        where: { id: p.id },
+                        data: { stockActual: producto.stockActual - p.cantidad }
+                    });
+
+                    // Crear transacción por producto
+                    await tx.transaccion.create({
+                        data: {
+                            barberiaId,
+                            turnoId,
+                            clienteId: turno.clienteId,
+                            monto: producto.precioVenta * p.cantidad,
+                            tipo: 'INGRESO',
+                            metodoPagoId: data.metodoPagoId,
+                            descripcion: `Venta: ${p.cantidad}x ${producto.nombre}`
+                        }
+                    });
+                }
             }
 
             return txIngreso;

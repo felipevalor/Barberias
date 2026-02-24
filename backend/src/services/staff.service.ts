@@ -3,10 +3,46 @@ import bcrypt from 'bcrypt';
 
 export class StaffService {
     async createBarbero(barberiaId: string, data: { nombre: string, email: string, telefono?: string, especialidad?: string }) {
-        // 1. Crear usuario con rol BARBERO
+        // 1. Check if user already exists
+        const emailTrimmed = data.email.trim();
+        const existingUser = await prisma.user.findUnique({
+            where: { email: emailTrimmed },
+            include: { BarberoProfile: true }
+        });
+
+        if (existingUser) {
+            // User exists, check if they belong to this barberia
+            if (existingUser.barberiaId !== barberiaId) {
+                throw new Error('El correo ya está registrado en otra barbería.');
+            }
+            // Check if they are already a barbero
+            if (existingUser.BarberoProfile) {
+                throw new Error('Este usuario ya está registrado como barbero.');
+            }
+
+            // Promote existing user to BARBERO if they aren't already
+            return prisma.$transaction(async (tx: any) => {
+                const updatedUser = await tx.user.update({
+                    where: { id: existingUser.id },
+                    data: { role: 'BARBERO' }
+                });
+
+                const newProfile = await tx.barberoProfile.create({
+                    data: {
+                        userId: updatedUser.id,
+                        telefono: data.telefono,
+                        especialidad: data.especialidad,
+                    }
+                });
+
+                return { user: updatedUser, profile: newProfile };
+            });
+        }
+
+        // 2. User doesn't exist, create everything from scratch
         const hashedPassword = await bcrypt.hash('123456', 10); // Contraseña por defecto
 
-        const result = await prisma.$transaction(async (tx: any) => {
+        return prisma.$transaction(async (tx: any) => {
             const newUser = await tx.user.create({
                 data: {
                     nombre: data.nombre,
@@ -17,7 +53,6 @@ export class StaffService {
                 },
             });
 
-            // 2. Crear BarberoProfile
             const newProfile = await tx.barberoProfile.create({
                 data: {
                     userId: newUser.id,
@@ -28,8 +63,6 @@ export class StaffService {
 
             return { user: newUser, profile: newProfile };
         });
-
-        return result;
     }
 
     async getBarberos(barberiaId: string) {
@@ -37,6 +70,9 @@ export class StaffService {
             where: {
                 barberiaId,
                 role: 'BARBERO',
+                BarberoProfile: {
+                    activo: true
+                }
             },
             include: {
                 BarberoProfile: {
@@ -48,6 +84,13 @@ export class StaffService {
                     }
                 },
             },
+        });
+    }
+
+    async deleteBarbero(profileId: string) {
+        return prisma.barberoProfile.update({
+            where: { id: profileId },
+            data: { activo: false }
         });
     }
 

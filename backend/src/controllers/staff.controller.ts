@@ -55,6 +55,16 @@ export class StaffController {
             res.status(400).json({ error: 'Error al registrar ausencia' });
         }
     }
+
+    async deleteBarbero(req: AuthRequest, res: Response) {
+        try {
+            const id = req.params.id as string; // profileId
+            await staffService.deleteBarbero(id);
+            res.status(200).json({ message: 'Barbero dado de baja exitosamente' });
+        } catch (error: any) {
+            res.status(400).json({ error: 'Error al dar de baja al barbero' });
+        }
+    }
 }
 
 export const staffController = new StaffController();

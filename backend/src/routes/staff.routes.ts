@@ -11,5 +11,6 @@ router.post('/', staffController.createBarbero.bind(staffController));
 router.get('/', staffController.getBarberos.bind(staffController));
 router.post('/:id/horarios', staffController.setHorarios.bind(staffController));
 router.post('/:id/ausencias', staffController.setAusencia.bind(staffController));
+router.delete('/:id', staffController.deleteBarbero.bind(staffController));
 
 export default router;

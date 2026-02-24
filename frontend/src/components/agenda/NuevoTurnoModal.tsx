@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { X, Clock, Scissors, UserCircle, Search, Plus } from 'lucide-react';
+import { X, Clock, Scissors, UserCircle, Search, Plus, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
 
 interface NuevoTurnoModalProps {
     isOpen: boolean;
@@ -38,7 +40,6 @@ export default function NuevoTurnoModal({ isOpen, onClose, onSuccess, preselecte
     const [filteredClientes, setFilteredClientes] = useState<any[]>([]);
 
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
     // Fetch data on open
     useEffect(() => {
@@ -82,7 +83,6 @@ export default function NuevoTurnoModal({ isOpen, onClose, onSuccess, preselecte
             setNombreCliente('');
             setTelefonoCliente('');
             setSearchCliente('');
-            setError('');
         }
     }, [isOpen]);
 
@@ -114,15 +114,19 @@ export default function NuevoTurnoModal({ isOpen, onClose, onSuccess, preselecte
         }
     }, [searchCliente, clientes]);
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         setLoading(true);
-        setError('');
 
         try {
+            if (!barberoId || !servicioId || !fechaHoraInicio) {
+                throw new Error('Por favor, completa todos los campos obligatorios');
+            }
+
             const body: any = {
                 barberoId,
                 servicioId,
-                fechaHoraInicio: new Date(fechaHoraInicio).toISOString()
+                fechaHoraInicio: new Date(fechaHoraInicio).toISOString() // Envia en UTC ISO
             };
 
             if (modoNuevoCliente) {
@@ -130,12 +134,8 @@ export default function NuevoTurnoModal({ isOpen, onClose, onSuccess, preselecte
                 body.nombreCliente = nombreCliente;
                 body.telefonoCliente = telefonoCliente;
             } else {
-                if (!clienteId) throw new Error('Selecciona un cliente');
+                if (!clienteId) throw new Error('Selecciona un cliente de la lista o crea uno nuevo');
                 body.clienteId = clienteId;
-            }
-
-            if (!barberoId || !servicioId || !fechaHoraInicio) {
-                throw new Error('Completa todos los campos obligatorios');
             }
 
             const res = await fetch(`${API}/turnos`, {
@@ -144,17 +144,27 @@ export default function NuevoTurnoModal({ isOpen, onClose, onSuccess, preselecte
                 body: JSON.stringify(body)
             });
 
+            const data = await res.json();
+
             if (!res.ok) {
-                const errData = await res.json();
-                throw new Error(errData.error || 'Error al crear turno');
+                // El backend ahora devuelve errores más específicos
+                throw new Error(data.error || 'No se pudo agendar el turno. Verifica la disponibilidad.');
             }
 
-            toast.success('Turno creado exitosamente');
+            toast.success('¡Turno agendado con éxito!');
             onSuccess();
             onClose();
         } catch (err: any) {
-            setError(err.message);
-            toast.error(err.message);
+            toast.error(err.message, {
+                duration: 4000,
+                style: {
+                    background: '#FEF2F2',
+                    color: '#991B1B',
+                    border: '1px solid #FEE2E2',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                }
+            });
         } finally {
             setLoading(false);
         }
@@ -166,197 +176,192 @@ export default function NuevoTurnoModal({ isOpen, onClose, onSuccess, preselecte
     const selectedCliente = clientes.find(c => c.id === clienteId);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm transition-all duration-500" onClick={onClose} role="dialog" aria-modal="true">
+            <div className="bg-white dark:bg-slate-900 rounded-[24px] shadow-2xl w-full max-w-md border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col animate-in fade-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+
                 {/* Header */}
-                <div className="flex justify-between items-center p-5 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-blue-600 to-blue-700">
-                    <h3 className="text-lg font-bold text-white flex items-center">
-                        <Plus className="w-5 h-5 mr-2" />
+                <div className="flex justify-between items-center p-6 border-b border-slate-50 dark:border-slate-800/50">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-slate-900 dark:bg-white flex items-center justify-center">
+                            <Plus className="w-5 h-5 text-white dark:text-slate-900" />
+                        </div>
                         Nuevo Turno
                     </h3>
-                    <button onClick={onClose} className="text-white/70 hover:text-white transition">
-                        <X className="w-5 h-5" />
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 p-2" aria-label="Cerrar">
+                        <X className="w-6 h-6" />
                     </button>
                 </div>
 
-                <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
-                    {error && (
-                        <div className="p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800">
-                            {error}
+                <div className="p-8 space-y-6 overflow-y-auto max-h-[75vh] scrollbar-hide">
+
+                    {/* Barbero & Servicio */}
+                    <div className="grid grid-cols-1 gap-5">
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-1">Barbero asignado</label>
+                            <div className="relative group">
+                                <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-slate-900 dark:group-focus-within:text-white transition-colors" />
+                                <select
+                                    value={barberoId}
+                                    onChange={e => setBarberoId(e.target.value)}
+                                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-200 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-slate-900/5 dark:focus:ring-white/5 focus:border-slate-900 dark:focus:border-white transition-all font-semibold cursor-pointer"
+                                >
+                                    <option value="">Seleccionar barbero</option>
+                                    {barberos.map(b => (
+                                        <option key={b.BarberoProfile?.id} value={b.BarberoProfile?.id}>
+                                            {b.nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
-                    )}
 
-                    {/* Barbero */}
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                            <Scissors className="w-4 h-4 mr-2 text-blue-500" /> Barbero
-                        </label>
-                        <select
-                            value={barberoId}
-                            onChange={e => setBarberoId(e.target.value)}
-                            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                        >
-                            <option value="">Seleccionar barbero...</option>
-                            {barberos.map(b => (
-                                <option key={b.BarberoProfile?.id} value={b.BarberoProfile?.id}>
-                                    {b.nombre}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-1">Servicio a realizar</label>
+                            <div className="relative group">
+                                <Scissors className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-slate-900 dark:group-focus-within:text-white transition-colors" />
+                                <select
+                                    value={servicioId}
+                                    onChange={e => setServicioId(e.target.value)}
+                                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-200 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-slate-900/5 dark:focus:ring-white/5 focus:border-slate-900 dark:focus:border-white transition-all font-semibold cursor-pointer"
+                                >
+                                    <option value="">Seleccionar servicio</option>
+                                    {servicios.map(s => (
+                                        <option key={s.id} value={s.id}>
+                                            {s.nombre} (${s.precio})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Servicio */}
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                            <Scissors className="w-4 h-4 mr-2 text-purple-500" /> Servicio
-                        </label>
-                        <select
-                            value={servicioId}
-                            onChange={e => setServicioId(e.target.value)}
-                            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                        >
-                            <option value="">Seleccionar servicio...</option>
-                            {servicios.map(s => (
-                                <option key={s.id} value={s.id}>
-                                    {s.nombre} — ${s.precio} ({s.duracionMinutos} min)
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Fecha & Hora */}
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                            <Clock className="w-4 h-4 mr-2 text-green-500" /> Fecha y Hora de Inicio
-                        </label>
-                        <input
-                            type="datetime-local"
-                            value={fechaHoraInicio}
-                            onChange={e => setFechaHoraInicio(e.target.value)}
-                            className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                        />
+                    {/* Fecha y Hora */}
+                    <div className="space-y-2">
+                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em] ml-1">Fecha y Hora de Inicio</label>
+                        <div className="relative group">
+                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-slate-900 dark:group-focus-within:text-white transition-colors" />
+                            <input
+                                type="datetime-local"
+                                value={fechaHoraInicio}
+                                onChange={e => setFechaHoraInicio(e.target.value)}
+                                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/5 dark:focus:ring-white/5 focus:border-slate-900 dark:focus:border-white transition-all font-semibold"
+                            />
+                        </div>
                         {horaFinCalculada && (
-                            <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                                <Clock className="w-3 h-3 mr-1" />
-                                Finaliza a las <span className="font-bold ml-1">{horaFinCalculada}</span>
-                                <span className="ml-2 text-gray-400">({selectedServicio?.duracionMinutos} min)</span>
-                            </p>
+                            <div className="flex items-center gap-2 px-1 pt-1">
+                                <Clock className="w-4 h-4 text-slate-400" />
+                                <span className="text-xs text-slate-500 font-medium">
+                                    Termina a las <span className="text-slate-900 dark:text-white font-bold">{horaFinCalculada}</span>
+                                </span>
+                            </div>
                         )}
                     </div>
 
-                    {/* Cliente */}
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <label className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center">
-                                <UserCircle className="w-4 h-4 mr-2 text-amber-500" /> Cliente
-                            </label>
+                    {/* Cliente Selection */}
+                    <div className="space-y-4 pt-4 border-t border-slate-50 dark:border-slate-800/50">
+                        <div className="flex items-center justify-between px-1">
+                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.1em]">Cliente</label>
                             <button
                                 type="button"
                                 onClick={() => { setModoNuevoCliente(!modoNuevoCliente); setClienteId(''); }}
-                                className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 transition"
+                                className="text-[11px] font-bold text-slate-900 dark:text-white px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full hover:scale-105 transition-all uppercase"
                             >
-                                {modoNuevoCliente ? 'Buscar existente' : '+ Nuevo cliente'}
+                                {modoNuevoCliente ? 'Buscar' : 'Nuevo'}
                             </button>
                         </div>
 
                         {modoNuevoCliente ? (
-                            <div className="space-y-3 bg-blue-50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30">
-                                <input
-                                    type="text"
-                                    placeholder="Nombre del cliente *"
+                            <div className="space-y-3 p-1 animate-in slide-in-from-top-2 duration-300">
+                                <Input
+                                    placeholder="Nombre completo *"
                                     value={nombreCliente}
                                     onChange={e => setNombreCliente(e.target.value)}
-                                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition text-sm"
+                                    className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-2xl h-12 text-sm font-semibold"
                                 />
-                                <input
-                                    type="tel"
-                                    placeholder="Teléfono (opcional)"
+                                <Input
+                                    placeholder="Teléfono móvil"
                                     value={telefonoCliente}
                                     onChange={e => setTelefonoCliente(e.target.value)}
-                                    className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition text-sm"
+                                    className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-2xl h-12 text-sm font-semibold"
                                 />
                             </div>
                         ) : (
-                            <div className="relative">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <div className="space-y-3">
+                                <div className="relative group">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-slate-900 dark:group-focus-within:text-white transition-colors" />
                                     <input
                                         type="text"
-                                        placeholder="Buscar por nombre, teléfono o email..."
+                                        placeholder="Buscar por nombre..."
                                         value={searchCliente}
                                         onChange={e => { setSearchCliente(e.target.value); setClienteId(''); }}
-                                        className="w-full pl-10 p-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 transition text-sm"
+                                        className="w-full pl-11 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/5 transition-all font-semibold"
                                     />
+
+                                    {/* Dropdown resultados */}
+                                    {filteredClientes.length > 0 && !clienteId && (
+                                        <div className="absolute z-10 w-full mt-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[20px] shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                                            {filteredClientes.map(c => (
+                                                <button
+                                                    key={c.id}
+                                                    type="button"
+                                                    onClick={() => { setClienteId(c.id); setSearchCliente(c.nombre); setFilteredClientes([]); }}
+                                                    className="w-full text-left px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center justify-between border-b border-slate-50 dark:border-slate-800 last:border-0"
+                                                >
+                                                    <div>
+                                                        <div className="text-sm font-bold text-slate-900 dark:text-white">{c.nombre}</div>
+                                                        {c.telefono && <div className="text-[10px] text-slate-400 font-medium">{c.telefono}</div>}
+                                                    </div>
+                                                    <Plus className="w-4 h-4 text-slate-300" />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Dropdown resultados */}
-                                {filteredClientes.length > 0 && !clienteId && (
-                                    <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                                        {filteredClientes.map(c => (
-                                            <button
-                                                key={c.id}
-                                                type="button"
-                                                onClick={() => { setClienteId(c.id); setSearchCliente(c.nombre); setFilteredClientes([]); }}
-                                                className="w-full text-left px-4 py-3 hover:bg-blue-50 dark:hover:bg-gray-600 transition text-sm border-b border-gray-100 dark:border-gray-600 last:border-0"
-                                            >
-                                                <span className="font-semibold text-gray-900 dark:text-white">{c.nombre}</span>
-                                                {c.telefono && <span className="ml-2 text-gray-500 dark:text-gray-400 text-xs">{c.telefono}</span>}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {selectedCliente && clienteId && (
-                                    <div className="mt-2 flex items-center justify-between bg-green-50 dark:bg-green-900/10 p-3 rounded-lg border border-green-200 dark:border-green-900/30">
-                                        <span className="text-sm font-semibold text-green-800 dark:text-green-300">
-                                            ✓ {selectedCliente.nombre}
-                                        </span>
+                                {selectedCliente && (
+                                    <div className="flex items-center justify-between bg-slate-900 dark:bg-white p-4 rounded-2xl shadow-sm animate-in fade-in duration-300">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-white/10 dark:bg-slate-900/10 flex items-center justify-center text-white dark:text-slate-900 font-bold">
+                                                {selectedCliente.nombre.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-bold text-white dark:text-slate-900">{selectedCliente.nombre}</div>
+                                                <div className="text-[9px] text-white/50 dark:text-slate-900/50 font-bold uppercase tracking-wider">Cliente Seleccionado</div>
+                                            </div>
+                                        </div>
                                         <button
                                             type="button"
                                             onClick={() => { setClienteId(''); setSearchCliente(''); }}
-                                            className="text-xs text-red-500 hover:text-red-600 font-medium"
-                                        >Cambiar</button>
+                                            className="p-2 hover:bg-white/10 dark:hover:bg-slate-900/10 rounded-lg transition-colors"
+                                        >
+                                            <X className="w-4 h-4 text-white dark:text-slate-900" />
+                                        </button>
                                     </div>
                                 )}
                             </div>
                         )}
                     </div>
-
-                    {/* Resumen */}
-                    {selectedServicio && (
-                        <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                            <h4 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Resumen</h4>
-                            <div className="flex justify-between text-sm mb-1">
-                                <span className="text-gray-600 dark:text-gray-400">Servicio</span>
-                                <span className="font-bold text-gray-900 dark:text-white">{selectedServicio.nombre}</span>
-                            </div>
-                            <div className="flex justify-between text-sm mb-1">
-                                <span className="text-gray-600 dark:text-gray-400">Duración</span>
-                                <span className="font-semibold text-gray-900 dark:text-white">{selectedServicio.duracionMinutos} min</span>
-                            </div>
-                            <div className="flex justify-between text-sm pt-2 border-t border-gray-200 dark:border-gray-700 mt-2">
-                                <span className="font-bold text-gray-700 dark:text-gray-300">Precio</span>
-                                <span className="font-black text-blue-600 dark:text-blue-400 text-lg">${selectedServicio.precio}</span>
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex flex-col-reverse sm:flex-row justify-end space-y-2 space-y-reverse sm:space-y-0 sm:space-x-3">
+                <div className="p-8 border-t border-slate-50 dark:border-slate-800 flex items-center gap-4 bg-slate-50/50 dark:bg-slate-800/20">
                     <button
                         onClick={onClose}
                         disabled={loading}
-                        className="w-full sm:w-auto px-5 py-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition"
+                        className="flex-1 px-4 py-3.5 text-sm font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all"
                     >
                         Cancelar
                     </button>
                     <button
-                        onClick={handleSubmit}
+                        onClick={() => handleSubmit()}
                         disabled={loading}
-                        className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50 transition shadow-sm"
+                        className={`flex-[2] py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-sm font-bold shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        {loading ? 'Guardando...' : 'Agendar Turno'}
+                        {loading ? (
+                            <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                            'Agendar Turno'
+                        )}
                     </button>
                 </div>
             </div>

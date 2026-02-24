@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { authService } from '../services/auth.service';
+import { AuthRequest } from '../middlewares/auth.middleware';
 
 export class AuthController {
     async register(req: Request, res: Response) {
@@ -27,6 +28,22 @@ export class AuthController {
             res.status(200).json(result);
         } catch (error: any) {
             res.status(401).json({ error: error.message || 'Error en el inicio de sesión' });
+        }
+    }
+
+    async changePassword(req: AuthRequest, res: Response) {
+        try {
+            const userId = req.user!.id;
+            const { currentPassword, newPassword } = req.body;
+
+            if (!currentPassword || !newPassword) {
+                return res.status(400).json({ error: 'La contraseña actual y la nueva son obligatorias' });
+            }
+
+            await authService.changePassword(userId, currentPassword, newPassword);
+            res.status(200).json({ message: 'Contraseña actualizada exitosamente' });
+        } catch (error: any) {
+            res.status(400).json({ error: error.message || 'Error al cambiar la contraseña' });
         }
     }
 }

@@ -4,19 +4,20 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Calendar, dateFnsLocalizer, View, Views } from 'react-big-calendar';
 import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
-import format from 'date-fns/format';
-import parse from 'date-fns/parse';
-import startOfWeek from 'date-fns/startOfWeek';
-import getDay from 'date-fns/getDay';
-import { startOfDay } from 'date-fns/startOfDay';
-import { endOfDay } from 'date-fns/endOfDay';
-import { addDays } from 'date-fns/addDays';
-import es from 'date-fns/locale/es';
+import { format } from 'date-fns';
+import { parse } from 'date-fns';
+import { startOfWeek } from 'date-fns';
+import { getDay } from 'date-fns';
+import { startOfDay } from 'date-fns';
+import { endOfDay } from 'date-fns';
+import { addDays } from 'date-fns';
+import { es } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import './agenda-calendar.css';
 import toast from 'react-hot-toast';
 import { Plus, RefreshCcw } from 'lucide-react';
+import Button from '@/components/ui/Button';
 
 import NuevoTurnoModal from '@/components/agenda/NuevoTurnoModal';
 import TurnoDetailModal from '@/components/agenda/TurnoDetailModal';
@@ -37,12 +38,20 @@ const DnDCalendar = withDragAndDrop(Calendar as any);
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 // Colores de estado
-const STATE_COLORS: Record<string, string> = {
-    'PENDIENTE': '#3b82f6',
-    'EN_CURSO': '#f59e0b',
-    'FINALIZADO': '#10b981',
-    'CANCELADO': '#ef4444',
-    'NO_ASISTIO': '#6b7280',
+const STATE_CLASSES: Record<string, string> = {
+    'PENDIENTE': 'turno-pendiente',
+    'EN_CURSO': 'turno-en-curso',
+    'FINALIZADO': 'turno-finalizado',
+    'CANCELADO': 'turno-cancelado',
+    'NO_ASISTIO': 'turno-no-asistio',
+};
+
+const STATE_COLORS_DOT: Record<string, string> = {
+    'PENDIENTE': '#3b82f6', // blue-500
+    'EN_CURSO': '#3b82f6', // blue-500
+    'FINALIZADO': '#94a3b8', // slate-400
+    'CANCELADO': '#cbd5e1', // slate-300
+    'NO_ASISTIO': '#cbd5e1', // slate-300
 };
 
 export default function AgendaPage() {
@@ -152,15 +161,11 @@ export default function AgendaPage() {
     const eventPropGetter = useCallback((event: any) => {
         if (event.isBackgroundEvent) return {};
 
-        const bg = STATE_COLORS[event.estado] || STATE_COLORS['PENDIENTE'];
+        const className = STATE_CLASSES[event.estado] || STATE_CLASSES['PENDIENTE'];
         return {
+            className,
             style: {
-                backgroundColor: bg,
-                borderRadius: '6px',
-                border: 'none',
-                color: 'white',
-                opacity: event.estado === 'CANCELADO' || event.estado === 'NO_ASISTIO' ? 0.5 : 0.9,
-                cursor: 'pointer',
+                // Ya no necesitamos estilos inline complejos, se manejan por clase
             },
         };
     }, []);
@@ -196,7 +201,7 @@ export default function AgendaPage() {
 
         try {
             const body: any = {
-                fechaHoraInicio: start.toISOString(),
+                fechaHoraInicio: start.toISOString(), // date-fns start object to UTC ISO
             };
             if (resourceId && resourceId !== event.resourceId) {
                 body.barberoId = resourceId;
@@ -238,49 +243,47 @@ export default function AgendaPage() {
 
     if (loading && turnos.length === 0) {
         return (
-            <div className="flex items-center justify-center h-[60vh]">
-                <div className="text-center">
-                    <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                    <p className="text-gray-500 dark:text-gray-400 font-medium">Cargando Agenda...</p>
-                </div>
+            <div className="flex flex-col items-center justify-center h-[60vh]">
+                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-gray-500 dark:text-gray-400 font-semibold animate-pulse">Cargando Agenda...</p>
             </div>
         );
     }
 
     return (
-        <div className="h-[calc(100vh-140px)] flex flex-col">
+        <div className="h-[calc(100vh-120px)] flex flex-col font-sans">
             {/* Header */}
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Agenda General</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                        {barberos.length} barbero{barberos.length !== 1 ? 's' : ''} · {turnos.length} turno{turnos.length !== 1 ? 's' : ''}
+                    <h2 className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">Agenda</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        {barberos.length} barbero{barberos.length !== 1 ? 's' : ''} activa{barberos.length !== 1 ? 's' : ''} · {turnos.length} turno{turnos.length !== 1 ? 's' : ''} agendado{turnos.length !== 1 ? 's' : ''}
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
                     <button
                         onClick={fetchData}
-                        className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
-                        title="Refrescar"
+                        className="p-2.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl transition-all shadow-sm"
+                        title="Actualizar agenda"
                     >
                         <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     </button>
-                    <button
-                        className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold text-sm transition-all shadow-sm hover:shadow-md"
+                    <Button
+                        leftIcon={<Plus className="w-4 h-4" />}
                         onClick={() => {
                             setPreselectedBarberoId(undefined);
                             setPreselectedStart(undefined);
                             setNuevoTurnoOpen(true);
                         }}
+                        className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white border-none rounded-xl py-2.5 px-6 font-medium"
                     >
-                        <Plus className="w-4 h-4" />
                         Nuevo Turno
-                    </button>
+                    </Button>
                 </div>
             </div>
 
             {/* Calendar */}
-            <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 overflow-hidden">
+            <div className="flex-1 bg-white dark:bg-slate-950 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-2 sm:p-4 overflow-hidden flex flex-col">
                 <DnDCalendar
                     localizer={localizer}
                     events={allEvents}
@@ -320,23 +323,23 @@ export default function AgendaPage() {
                         showMore: (total: number) => `+${total} más`,
                     }}
                     eventPropGetter={eventPropGetter}
-                    className="font-sans"
+                    className="flex-1 font-sans"
                 />
             </div>
 
             {/* Leyenda de colores */}
-            <div className="flex items-center gap-4 mt-3 px-1 flex-wrap">
-                {Object.entries(STATE_COLORS).map(([key, color]) => (
-                    <div key={key} className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                            {key === 'PENDIENTE' ? 'Pendiente' : key === 'EN_CURSO' ? 'En Curso' : key === 'FINALIZADO' ? 'Finalizado' : key === 'CANCELADO' ? 'Cancelado' : 'No Asistió'}
-                        </span>
-                    </div>
-                ))}
-                <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded border border-gray-400 bg-gray-200 dark:bg-gray-600" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px)' }}></div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Bloqueo/Descanso</span>
+            <div className="flex items-center gap-6 mt-6 px-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-slate-900 dark:bg-white"></div>
+                    <span className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider">Agendado</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-500 font-semibold uppercase tracking-wider">Finalizado</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-md bg-slate-50 border border-slate-100 dark:bg-slate-800 dark:border-slate-700" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px)' }}></div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Bloqueo / Descanso</span>
                 </div>
             </div>
 

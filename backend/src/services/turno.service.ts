@@ -3,17 +3,34 @@ import { emailService } from './email.service';
 
 export class TurnoService {
 
+    // ── Utilidades de Tiempo ──────────────────────────────────────────
+
+    /**
+     * Convierte una hora HH:MM a minutos desde el inicio del día (00:00)
+     */
+    private timeToMinutes(time: string): number {
+        const [hours, minutes] = time.split(':').map(Number);
+        return (hours || 0) * 60 + (minutes || 0);
+    }
+
+    /**
+     * Obtiene los minutos desde el inicio del día para una fecha dada en UTC
+     */
+    private dateToMinutesUTC(date: Date): number {
+        return date.getUTCHours() * 60 + date.getUTCMinutes();
+    }
+
     // ── Validaciones privadas ──────────────────────────────────────────
 
     /**
      * Valida que el turno caiga dentro del horario laboral del barbero
      * y no se superponga con descansos ni ausencias.
      */
-    private async validarHorarioLaboral(barberoId: string, fechaInicio: Date, fechaFin: Date) {
-        const diaSemana = fechaInicio.getDay(); // 0=Dom, 1=Lun...
+    private async validarHorarioLaboral(tx: any, barberoId: string, fechaInicio: Date, fechaFin: Date) {
+        // Usamos UTC para consistency
+        const diaSemana = fechaInicio.getUTCDay();
 
-        // 1. Obtener horario laboral del barbero para ese día
-        const horario = await prisma.horarioLaboral.findFirst({
+        const horario = await tx.horarioLaboral.findFirst({
             where: { barberoId, diaSemana },
             include: { descansos: true }
         });
@@ -22,23 +39,27 @@ export class TurnoService {
             throw new Error('El barbero no trabaja este día');
         }
 
-        // Comparar horas como strings HH:MM
-        const horaInicioTurno = `${String(fechaInicio.getUTCHours()).padStart(2, '0')}:${String(fechaInicio.getUTCMinutes()).padStart(2, '0')}`;
-        const horaFinTurno = `${String(fechaFin.getUTCHours()).padStart(2, '0')}:${String(fechaFin.getUTCMinutes()).padStart(2, '0')}`;
+        const inicioTurnoMins = this.dateToMinutesUTC(fechaInicio);
+        const finTurnoMins = this.dateToMinutesUTC(fechaFin);
+        const inicioLaboralMins = this.timeToMinutes(horario.horaInicio);
+        const finLaboralMins = this.timeToMinutes(horario.horaFin);
 
-        if (horaInicioTurno < horario.horaInicio || horaFinTurno > horario.horaFin) {
-            throw new Error(`El turno está fuera del horario laboral del barbero (${horario.horaInicio} - ${horario.horaFin})`);
+        if (inicioTurnoMins < inicioLaboralMins || finTurnoMins > finLaboralMins) {
+            throw new Error(`El turno está fuera del horario laboral (${horario.horaInicio} - ${horario.horaFin})`);
         }
 
-        // 2. Verificar que no caiga dentro de un descanso
+        // Verificar descansos
         for (const descanso of horario.descansos) {
-            if (horaInicioTurno < descanso.horaFin && horaFinTurno > descanso.horaInicio) {
-                throw new Error(`El turno se superpone con el descanso del barbero (${descanso.horaInicio} - ${descanso.horaFin})`);
+            const inicioDescansoMins = this.timeToMinutes(descanso.horaInicio);
+            const finDescansoMins = this.timeToMinutes(descanso.horaFin);
+
+            if (inicioTurnoMins < finDescansoMins && finTurnoMins > inicioDescansoMins) {
+                throw new Error(`El turno se superpone con el descanso (${descanso.horaInicio} - ${descanso.horaFin})`);
             }
         }
 
-        // 3. Verificar que no haya ausencia ese día
-        const ausencia = await prisma.ausencia.findFirst({
+        // Verificar ausencias
+        const ausencia = await tx.ausencia.findFirst({
             where: {
                 barberoId,
                 fechaInicio: { lte: fechaFin },
@@ -52,105 +73,82 @@ export class TurnoService {
     }
 
     /**
-     * Valida que no haya superposición de turnos activos para el barbero.
-     * excludeTurnoId se usa para excluir el turno actual al moverlo.
+     * Valida que no haya superposición de turnos activos.
      */
-    private async validarSolapamiento(barberoId: string, fechaInicio: Date, fechaFin: Date, excludeTurnoId?: string) {
-        const where: any = {
-            barberoId,
-            estado: { in: ['PENDIENTE', 'EN_CURSO'] },
-            OR: [
-                {
-                    fechaHoraInicio: { lte: fechaInicio },
-                    fechaHoraFin: { gt: fechaInicio }
-                },
-                {
-                    fechaHoraInicio: { lt: fechaFin },
-                    fechaHoraFin: { gte: fechaFin }
-                },
-                {
-                    fechaHoraInicio: { gte: fechaInicio },
-                    fechaHoraFin: { lte: fechaFin }
-                }
-            ]
-        };
-
-        if (excludeTurnoId) {
-            where.id = { not: excludeTurnoId };
-        }
-
-        const solapamiento = await prisma.turno.findFirst({ where });
+    private async validarSolapamiento(tx: any, barberoId: string, fechaInicio: Date, fechaFin: Date, excludeTurnoId?: string) {
+        const solapamiento = await tx.turno.findFirst({
+            where: {
+                barberoId,
+                estado: { in: ['PENDIENTE', 'EN_CURSO'] },
+                id: excludeTurnoId ? { not: excludeTurnoId } : undefined,
+                OR: [
+                    { fechaHoraInicio: { lte: fechaInicio }, fechaHoraFin: { gt: fechaInicio } },
+                    { fechaHoraInicio: { lt: fechaFin }, fechaHoraFin: { gte: fechaFin } },
+                    { fechaHoraInicio: { gte: fechaInicio }, fechaHoraFin: { lte: fechaFin } }
+                ]
+            }
+        });
 
         if (solapamiento) {
             throw new Error('El barbero ya tiene un turno reservado en ese horario');
         }
     }
 
-    // ── Crear turno ────────────────────────────────────────────────────
+    // ── Crear turno (Con Transacción) ──────────────────────────────────
 
     async crearTurno(data: { barberiaId: string, barberoId: string, clienteId: string, servicioId: string, fechaHoraInicio: Date }) {
-        const { barberiaId, barberoId, clienteId, servicioId, fechaHoraInicio } = data;
+        return await prisma.$transaction(async (tx) => {
+            const { barberiaId, barberoId, clienteId, servicioId, fechaHoraInicio } = data;
 
-        // 1. Obtener duración del servicio
-        const servicio = await prisma.servicio.findUnique({ where: { id: servicioId } });
-        if (!servicio) throw new Error('Servicio no encontrado');
+            const servicio = await tx.servicio.findUnique({ where: { id: servicioId } });
+            if (!servicio) throw new Error('Servicio no encontrado');
 
-        const fechaHoraFin = new Date(fechaHoraInicio.getTime() + servicio.duracionMinutos * 60000);
+            const fechaHoraFin = new Date(fechaHoraInicio.getTime() + servicio.duracionMinutos * 60000);
 
-        // 2. Validar que la fecha no sea en el pasado
-        if (fechaHoraInicio < new Date()) {
-            throw new Error('No se pueden crear turnos en el pasado');
-        }
-
-        // 3. Validar horario laboral, descansos y ausencias
-        await this.validarHorarioLaboral(barberoId, fechaHoraInicio, fechaHoraFin);
-
-        // 4. Validar solapamiento
-        await this.validarSolapamiento(barberoId, fechaHoraInicio, fechaHoraFin);
-
-        // 5. Crear el turno
-        const turno = await prisma.turno.create({
-            data: {
-                barberiaId,
-                barberoId,
-                clienteId,
-                servicioId,
-                fechaHoraInicio,
-                fechaHoraFin,
-                estado: 'PENDIENTE'
-            },
-            include: {
-                cliente: true,
-                barbero: { include: { user: true } },
-                servicio: true
+            if (fechaHoraInicio < new Date()) {
+                throw new Error('No se pueden crear turnos en el pasado');
             }
+
+            await this.validarHorarioLaboral(tx, barberoId, fechaHoraInicio, fechaHoraFin);
+            await this.validarSolapamiento(tx, barberoId, fechaHoraInicio, fechaHoraFin);
+
+            const turno = await tx.turno.create({
+                data: {
+                    barberiaId,
+                    barberoId,
+                    clienteId,
+                    servicioId,
+                    fechaHoraInicio,
+                    fechaHoraFin,
+                    estado: 'PENDIENTE'
+                },
+                include: {
+                    cliente: true,
+                    barbero: { include: { user: true } },
+                    servicio: true
+                }
+            });
+
+            if (turno.cliente.email) {
+                emailService.sendTurnoConfirmation(
+                    turno.cliente.email,
+                    turno.cliente.nombre,
+                    turno.fechaHoraInicio,
+                    turno.servicio.nombre
+                ).catch(console.error);
+            }
+
+            return turno;
         });
-
-        // 6. Enviar Notificación Email en background
-        if (turno.cliente.email) {
-            emailService.sendTurnoConfirmation(
-                turno.cliente.email,
-                turno.cliente.nombre,
-                turno.fechaHoraInicio,
-                turno.servicio.nombre
-            ).catch(console.error);
-        }
-
-        return turno;
     }
 
     // ── Obtener turnos ─────────────────────────────────────────────────
 
     async getTurnos(barberiaId: string, options?: { fechaInicio?: Date, fechaFin?: Date, barberoId?: string }) {
         const whereClause: any = { barberiaId };
-
         if (options?.barberoId) whereClause.barberoId = options.barberoId;
-
         if (options?.fechaInicio && options?.fechaFin) {
-            whereClause.fechaHoraInicio = {
-                gte: options.fechaInicio,
-                lte: options.fechaFin
-            };
+            whereClause.fechaHoraInicio = { gte: options.fechaInicio, lte: options.fechaFin };
         }
 
         return prisma.turno.findMany({
@@ -164,65 +162,59 @@ export class TurnoService {
         });
     }
 
-    // ── Actualizar turno (mover / editar) ──────────────────────────────
+    // ── Actualizar turno (Mover / Editar con Transacción) ──────────────
 
     async updateTurno(turnoId: string, barberiaId: string, data: { barberoId?: string, fechaHoraInicio?: string, servicioId?: string }) {
-        const turno = await prisma.turno.findFirst({
-            where: { id: turnoId, barberiaId },
-            include: { servicio: true }
-        });
+        return await prisma.$transaction(async (tx) => {
+            const turno = await tx.turno.findFirst({
+                where: { id: turnoId, barberiaId },
+                include: { servicio: true }
+            });
 
-        if (!turno) throw new Error('Turno no encontrado');
-
-        if (turno.estado === 'FINALIZADO' || turno.estado === 'CANCELADO') {
-            throw new Error('No se puede modificar un turno finalizado o cancelado');
-        }
-
-        const newBarberoId = data.barberoId || turno.barberoId;
-        const newServicioId = data.servicioId || turno.servicioId;
-
-        // Si cambió el servicio, obtener nueva duración
-        let duracion = turno.servicio.duracionMinutos;
-        if (data.servicioId && data.servicioId !== turno.servicioId) {
-            const nuevoServicio = await prisma.servicio.findUnique({ where: { id: data.servicioId } });
-            if (!nuevoServicio) throw new Error('Servicio no encontrado');
-            duracion = nuevoServicio.duracionMinutos;
-        }
-
-        const newInicio = data.fechaHoraInicio ? new Date(data.fechaHoraInicio) : turno.fechaHoraInicio;
-        const newFin = new Date(newInicio.getTime() + duracion * 60000);
-
-        // Validar horario laboral
-        await this.validarHorarioLaboral(newBarberoId, newInicio, newFin);
-
-        // Validar solapamiento (excluyendo este turno)
-        await this.validarSolapamiento(newBarberoId, newInicio, newFin, turnoId);
-
-        return prisma.turno.update({
-            where: { id: turnoId },
-            data: {
-                barberoId: newBarberoId,
-                servicioId: newServicioId,
-                fechaHoraInicio: newInicio,
-                fechaHoraFin: newFin
-            },
-            include: {
-                cliente: true,
-                barbero: { include: { user: true } },
-                servicio: true
+            if (!turno) throw new Error('Turno no encontrado');
+            if (['FINALIZADO', 'CANCELADO', 'NO_ASISTIO'].includes(turno.estado)) {
+                throw new Error('No se puede modificar un turno en estado final');
             }
+
+            const newBarberoId = data.barberoId || turno.barberoId;
+            let duracion = turno.servicio.duracionMinutos;
+
+            if (data.servicioId && data.servicioId !== turno.servicioId) {
+                const nuevoServicio = await tx.servicio.findUnique({ where: { id: data.servicioId } });
+                if (!nuevoServicio) throw new Error('Servicio no encontrado');
+                duracion = nuevoServicio.duracionMinutos;
+            }
+
+            const newInicio = data.fechaHoraInicio ? new Date(data.fechaHoraInicio) : turno.fechaHoraInicio;
+            const newFin = new Date(newInicio.getTime() + duracion * 60000);
+
+            await this.validarHorarioLaboral(tx, newBarberoId, newInicio, newFin);
+            await this.validarSolapamiento(tx, newBarberoId, newInicio, newFin, turnoId);
+
+            return tx.turno.update({
+                where: { id: turnoId },
+                data: {
+                    barberoId: newBarberoId,
+                    servicioId: data.servicioId || turno.servicioId,
+                    fechaHoraInicio: newInicio,
+                    fechaHoraFin: newFin
+                },
+                include: {
+                    cliente: true,
+                    barbero: { include: { user: true } },
+                    servicio: true
+                }
+            });
         });
     }
 
-    // ── Cambiar estado ─────────────────────────────────────────────────
+    // ── Cambiar estado (Incluye Soft Delete lógico) ───────────────────
 
     async updateEstado(turnoId: string, barberiaId: string, estado: string) {
-        const turno = await prisma.turno.findFirst({
-            where: { id: turnoId, barberiaId }
-        });
-
+        const turno = await prisma.turno.findFirst({ where: { id: turnoId, barberiaId } });
         if (!turno) throw new Error('Turno no encontrado');
 
+        // Si el estado es CANCELADO, lo tratamos como Soft Delete para liberar horario
         return prisma.turno.update({
             where: { id: turnoId },
             data: { estado },
@@ -237,37 +229,25 @@ export class TurnoService {
     // ── Obtener bloqueos (descansos + ausencias) ───────────────────────
 
     async getBloqueos(barberiaId: string, fechaInicio: Date, fechaFin: Date) {
-        // Obtener todos los barberos de la barbería con sus horarios y ausencias
         const barberos = await prisma.barberoProfile.findMany({
-            where: {
-                user: { barberiaId }
-            },
+            where: { user: { barberiaId } },
             include: {
                 user: { select: { nombre: true } },
-                horarios: {
-                    include: { descansos: true }
-                },
-                ausencias: {
-                    where: {
-                        fechaInicio: { lte: fechaFin },
-                        fechaFin: { gte: fechaInicio }
-                    }
-                }
+                horarios: { include: { descansos: true } },
+                ausencias: { where: { fechaInicio: { lte: fechaFin }, fechaFin: { gte: fechaInicio } } }
             }
         });
 
         const bloqueos: any[] = [];
-
-        // Generar bloques de descanso para cada día en el rango
         const currentDate = new Date(fechaInicio);
+
         while (currentDate <= fechaFin) {
-            const diaSemana = currentDate.getDay();
+            const diaSemana = currentDate.getUTCDay();
 
             for (const barbero of barberos) {
                 const horarioDelDia = barbero.horarios.find((h: any) => h.diaSemana === diaSemana);
 
                 if (!horarioDelDia) {
-                    // El barbero no trabaja este día — bloquear todo el día
                     const diaStart = new Date(currentDate);
                     diaStart.setUTCHours(0, 0, 0, 0);
                     const diaEnd = new Date(currentDate);
@@ -281,12 +261,13 @@ export class TurnoService {
                         fin: diaEnd.toISOString()
                     });
                 } else {
-                    // Agregar descansos
                     for (const descanso of horarioDelDia.descansos) {
-                        const parts1 = descanso.horaInicio.split(':').map(Number);
-                        const parts2 = descanso.horaFin.split(':').map(Number);
-                        const hI = parts1[0] ?? 0, mI = parts1[1] ?? 0;
-                        const hF = parts2[0] ?? 0, mF = parts2[1] ?? 0;
+                        const [hIStr, mIStr] = descanso.horaInicio.split(':');
+                        const [hFStr, mFStr] = descanso.horaFin.split(':');
+                        const hI = Number(hIStr) || 0;
+                        const mI = Number(mIStr) || 0;
+                        const hF = Number(hFStr) || 0;
+                        const mF = Number(mFStr) || 0;
 
                         const inicio = new Date(currentDate);
                         inicio.setUTCHours(hI, mI, 0, 0);
@@ -303,7 +284,6 @@ export class TurnoService {
                     }
                 }
 
-                // Agregar ausencias
                 for (const ausencia of barbero.ausencias) {
                     bloqueos.push({
                         barberoId: barbero.id,
@@ -315,8 +295,7 @@ export class TurnoService {
                     });
                 }
             }
-
-            currentDate.setDate(currentDate.getDate() + 1);
+            currentDate.setUTCDate(currentDate.getUTCDate() + 1);
         }
 
         return bloqueos;

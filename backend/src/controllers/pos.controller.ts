@@ -30,13 +30,18 @@ export class POSController {
     async checkout(req: AuthRequest, res: Response) {
         try {
             const turnoId = req.params.turnoId as string;
-            const { metodoPagoId, montoCobrado, propina } = req.body;
+            const { metodoPagoId, montoCobrado, propina, productos } = req.body;
 
             if (!metodoPagoId || montoCobrado === undefined) {
                 return res.status(400).json({ error: 'Faltan datos de cobro' });
             }
 
-            const result = await posService.checkoutTurno(req.user!.barberiaId!, turnoId, { metodoPagoId, montoCobrado, propina });
+            const result = await posService.checkoutTurno(req.user!.barberiaId!, turnoId, {
+                metodoPagoId,
+                montoCobrado,
+                propina,
+                productos
+            });
             res.status(200).json(result);
         } catch (error: any) {
             res.status(400).json({ error: error.message });

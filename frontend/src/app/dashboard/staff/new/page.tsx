@@ -4,6 +4,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
+import { ChevronLeft, UserPlus, Mail, Phone, Scissors, BadgePlus } from 'lucide-react';
+import toast from 'react-hot-toast';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export default function NewStaffPage() {
     const [formData, setFormData] = useState({
@@ -23,7 +29,7 @@ export default function NewStaffPage() {
         setError('');
 
         try {
-            const res = await fetch('http://localhost:3001/api/staff', {
+            const res = await fetch(`${API}/staff`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -37,95 +43,112 @@ export default function NewStaffPage() {
                 throw new Error(errorData.error || 'Error al crear barbero');
             }
 
+            toast.success(`${formData.nombre} ha sido añadido al equipo`);
             router.push('/dashboard/staff');
         } catch (err: any) {
             setError(err.message);
+            toast.error(err.message || 'Error al crear barbero');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="max-w-2xl mx-auto">
-            <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Añadir Nuevo Barbero</h2>
-                <Link href="/dashboard/staff" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-                    Volver al listado
+        <div className="max-w-3xl mx-auto space-y-8 pb-12">
+            <div>
+                <Link
+                    href="/dashboard/staff"
+                    className="inline-flex items-center text-sm font-bold text-slate-400 hover:text-blue-600 transition-colors mb-4 group"
+                >
+                    <ChevronLeft className="w-4 h-4 mr-1 transition-transform group-hover:-translate-x-1" />
+                    Volver al equipo
                 </Link>
+                <div className="flex items-center">
+                    <div className="bg-blue-600 p-3 rounded-2xl mr-4 shadow-blue-200 shadow-lg">
+                        <UserPlus className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Nuevo Personal</h2>
+                        <p className="text-slate-400 font-medium">Registra un nuevo barbero en tu sistema.</p>
+                    </div>
+                </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8">
-                <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="bg-white border border-slate-200 rounded-[2rem] p-8 md:p-10 shadow-sm">
+                <form onSubmit={handleSubmit} className="space-y-8">
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/30 text-red-600 p-4 rounded-lg text-sm">
+                        <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-sm font-semibold flex items-center">
+                            <span className="w-1.5 h-1.5 bg-red-600 rounded-full mr-3 animate-pulse"></span>
                             {error}
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre Completo *</label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.nombre}
-                                onChange={e => setFormData({ ...formData, nombre: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                placeholder="Ej. Martín Gómez"
-                            />
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <Input
+                            label="Nombre Completo"
+                            required
+                            leftIcon={<Scissors className="w-4 h-4" />}
+                            placeholder="Ej. Martín Gómez"
+                            value={formData.nombre}
+                            onChange={e => setFormData({ ...formData, nombre: e.target.value })}
+                        />
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email * (Para su login)</label>
-                            <input
-                                type="email"
-                                required
-                                value={formData.email}
-                                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                placeholder="martin@ejemplo.com"
-                            />
-                        </div>
+                        <Input
+                            label="Correo Electrónico"
+                            type="email"
+                            required
+                            leftIcon={<Mail className="w-4 h-4" />}
+                            placeholder="martin@barberia.com"
+                            value={formData.email}
+                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                        />
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teléfono</label>
-                            <input
-                                type="tel"
-                                value={formData.telefono}
-                                onChange={e => setFormData({ ...formData, telefono: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                placeholder="+54 11 2345 6789"
-                            />
-                        </div>
+                        <Input
+                            label="Teléfono de Contacto"
+                            type="tel"
+                            leftIcon={<Phone className="w-4 h-4" />}
+                            placeholder="+54 11 1234 5678"
+                            value={formData.telefono}
+                            onChange={e => setFormData({ ...formData, telefono: e.target.value })}
+                        />
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Especialidad Principal</label>
-                            <input
-                                type="text"
-                                value={formData.especialidad}
-                                onChange={e => setFormData({ ...formData, especialidad: e.target.value })}
-                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                placeholder="Degradados, Barba, etc."
-                            />
-                        </div>
+                        <Input
+                            label="Especialidad"
+                            leftIcon={<BadgePlus className="w-4 h-4" />}
+                            placeholder="Cortes clásicos, barba..."
+                            value={formData.especialidad}
+                            onChange={e => setFormData({ ...formData, especialidad: e.target.value })}
+                        />
                     </div>
 
-                    <div className="pt-4 flex justify-end space-x-3">
-                        <Link
-                            href="/dashboard/staff"
-                            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                        >
-                            Cancelar
+                    <div className="pt-6 border-t border-slate-100 flex flex-col-reverse sm:flex-row justify-end gap-3">
+                        <Link href="/dashboard/staff" className="w-full sm:w-auto">
+                            <Button variant="secondary" fullWidth className="h-12 px-8">
+                                Cancelar
+                            </Button>
                         </Link>
-                        <button
+                        <Button
                             type="submit"
-                            disabled={loading}
-                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                            isLoading={loading}
+                            fullWidth
+                            className="h-12 px-10"
                         >
-                            {loading ? 'Guardando...' : 'Guardar Barbero'}
-                        </button>
+                            Confirmar y Crear
+                        </Button>
                     </div>
                 </form>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 flex items-start">
+                <div className="bg-white p-2 rounded-lg border border-slate-200 mr-4 mt-1">
+                    <Mail className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                    <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">Información de Acceso</h4>
+                    <p className="text-sm text-slate-500 mt-1 leading-relaxed">
+                        Se le asignará una contraseña temporal <span className="font-bold text-slate-900">123456</span> por defecto. El barbero podrá cambiarla al iniciar sesión por primera vez.
+                    </p>
+                </div>
             </div>
         </div>
     );

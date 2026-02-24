@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
 
 export default function RegisterPage() {
     const [formData, setFormData] = useState({
@@ -46,87 +48,85 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800">
+                <div className="text-center">
+                    <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">
                         Crea tu Barbería
                     </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                         Regístrate como administrador para empezar
                     </p>
                 </div>
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+
+                <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 p-4 mb-4 rounded-r">
-                            <p className="text-red-700 dark:text-red-300 text-sm font-medium">{error}</p>
+                        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4 rounded-xl" role="alert" aria-live="polite">
+                            <p className="text-red-700 dark:text-red-400 text-sm font-medium">{error}</p>
                         </div>
                     )}
-                    <div className="rounded-md space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre Completo</label>
-                            <input
-                                name="nombre"
-                                type="text"
-                                required
-                                className="appearance-none relative block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
-                                placeholder="Juan Pérez"
-                                value={formData.nombre}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre de la Barbería</label>
-                            <input
-                                name="nombreBarberia"
-                                type="text"
-                                required
-                                className="appearance-none relative block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
-                                placeholder="The Classic Barber"
-                                value={formData.nombreBarberia}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Correo Electrónico</label>
-                            <input
-                                name="email"
-                                type="email"
-                                required
-                                className="appearance-none relative block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
-                                placeholder="juan@ejemplo.com"
-                                value={formData.email}
-                                onChange={handleChange}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contraseña</label>
-                            <input
-                                name="password"
-                                type="password"
-                                required
-                                className="appearance-none relative block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
-                                placeholder="••••••••"
-                                value={formData.password}
-                                onChange={handleChange}
-                            />
-                        </div>
+
+                    <div className="space-y-4">
+                        <Input
+                            label="Nombre Completo"
+                            name="nombre"
+                            type="text"
+                            required
+                            placeholder="Juan Pérez"
+                            value={formData.nombre}
+                            onChange={handleChange}
+                            autoComplete="name"
+                        />
+
+                        <Input
+                            label="Nombre de la Barbería"
+                            name="nombreBarberia"
+                            type="text"
+                            required
+                            placeholder="The Classic Barber"
+                            value={formData.nombreBarberia}
+                            onChange={handleChange}
+                        />
+
+                        <Input
+                            label="Correo Electrónico"
+                            name="email"
+                            type="email"
+                            required
+                            placeholder="juan@ejemplo.com"
+                            value={formData.email}
+                            onChange={handleChange}
+                            autoComplete="email"
+                        />
+
+                        <Input
+                            label="Contraseña"
+                            name="password"
+                            type="password"
+                            required
+                            placeholder="••••••••"
+                            value={formData.password}
+                            onChange={handleChange}
+                            autoComplete="new-password"
+                        />
                     </div>
 
-                    <div>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors shadow-sm"
-                        >
-                            {loading ? 'Registrando...' : 'Terminar Registro'}
-                        </button>
-                    </div>
+                    <Button
+                        type="submit"
+                        isLoading={loading}
+                        fullWidth
+                        className="h-12 text-base"
+                    >
+                        Terminar Registro
+                    </Button>
 
-                    <div className="text-center mt-4">
-                        <a href="/login" className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
-                            ¿Ya tienes cuenta? Inicia sesión
-                        </a>
+                    <div className="text-center">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            ¿Ya tienes una cuenta?{' '}
+                            <a href="/login" className="font-bold text-blue-600 hover:text-blue-500 dark:text-blue-400 transition-colors">
+                                Inicia sesión
+                            </a>
+                        </p>
                     </div>
                 </form>
             </div>

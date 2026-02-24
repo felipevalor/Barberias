@@ -3,6 +3,8 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import Input from '@/components/ui/Input';
+import Button from '@/components/ui/Button';
 
 function LoginContent() {
     const [email, setEmail] = useState('');
@@ -42,78 +44,89 @@ function LoginContent() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-                        Iniciar Sesión
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800">
+                <div className="text-center">
+                    <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+                        Bienvenido de nuevo
                     </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                         Ingresa a tu panel de control de Barberías
                     </p>
                 </div>
 
                 {justRegistered && (
-                    <div className="bg-green-50 dark:bg-green-900/30 border-l-4 border-green-500 p-4 mb-4 rounded-r">
-                        <p className="text-green-700 dark:text-green-300 text-sm font-medium">Registro exitoso. Por favor ingresa tus credenciales.</p>
+                    <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-4 rounded-xl flex items-center space-x-3">
+                        <div className="flex-shrink-0 w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        <p className="text-green-800 dark:text-green-300 text-sm font-semibold">
+                            Registro exitoso. ¡Inicia sesión para continuar!
+                        </p>
                     </div>
                 )}
 
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                <form className="mt-8 space-y-5" onSubmit={handleSubmit} noValidate>
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 p-4 mb-4 rounded-r">
-                            <p className="text-red-700 dark:text-red-300 text-sm font-medium">{error}</p>
+                        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4 rounded-xl" role="alert" aria-live="polite">
+                            <p className="text-red-700 dark:text-red-400 text-sm font-medium">{error}</p>
                         </div>
                     )}
-                    <div className="rounded-md space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Correo Electrónico</label>
-                            <input
-                                name="email"
-                                type="email"
-                                required
-                                className="appearance-none relative block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
-                                placeholder="juan@ejemplo.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contraseña</label>
-                            <input
+
+                    <div className="space-y-4">
+                        <Input
+                            label="Correo Electrónico"
+                            name="email"
+                            type="email"
+                            required
+                            placeholder="juan@ejemplo.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            autoComplete="email"
+                        />
+
+                        <div className="space-y-1">
+                            <Input
+                                label="Contraseña"
                                 name="password"
                                 type="password"
                                 required
-                                className="appearance-none relative block w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all"
                                 placeholder="••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                autoComplete="current-password"
                             />
+                            <div className="flex justify-end">
+                                <a href="#" className="text-xs font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 transition-colors">
+                                    ¿Olvidaste tu contraseña?
+                                </a>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                        <div className="text-sm">
-                            <a href="#" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
-                                ¿Olvidaste tu contraseña?
+                    <Button
+                        type="submit"
+                        isLoading={loading}
+                        fullWidth
+                        className="h-12 text-base"
+                    >
+                        Iniciar Sesión
+                    </Button>
+
+                    <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                            <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-white dark:bg-gray-900 px-2 text-gray-500 dark:text-gray-500 font-medium">O continúa con</span>
+                        </div>
+                    </div>
+
+                    <div className="text-center">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            ¿No tienes una cuenta?{' '}
+                            <a href="/register" className="font-bold text-blue-600 hover:text-blue-500 dark:text-blue-400 transition-colors">
+                                Regístrate gratis
                             </a>
-                        </div>
-                    </div>
-
-                    <div>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors shadow-sm"
-                        >
-                            {loading ? 'Ingresando...' : 'Iniciar Sesión'}
-                        </button>
-                    </div>
-
-                    <div className="text-center mt-4">
-                        <a href="/register" className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
-                            ¿No tienes una cuenta de dueño? Regístrate
-                        </a>
+                        </p>
                     </div>
                 </form>
             </div>
@@ -123,7 +136,12 @@ function LoginContent() {
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Cargando...</div>}>
+        <Suspense fallback={
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-950">
+                <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <p className="mt-4 text-gray-500 dark:text-gray-400 font-medium animate-pulse">Cargando...</p>
+            </div>
+        }>
             <LoginContent />
         </Suspense>
     )

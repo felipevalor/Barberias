@@ -1,237 +1,248 @@
-/* ── Agenda Calendar – Custom Styles ────────────────────────────────── */
+/* ── Agenda Calendar – Minimalista & Higiénico ────────────────────────────────── */
 
 /* Base overrides */
 .rbc-calendar {
     font-family: inherit;
+    background-color: transparent;
 }
 
 .rbc-toolbar {
-    margin-bottom: 16px;
-    gap: 8px;
+    margin-bottom: 24px;
+    gap: 12px;
     flex-wrap: wrap;
+    border-bottom: 1px solid var(--color-slate-100);
+    padding-bottom: 16px;
 }
 
 .rbc-toolbar button {
-    border-radius: 8px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid var(--color-slate-200);
     background: white;
-    color: #374151;
-    transition: all 0.15s;
+    color: var(--color-slate-600);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
+    box-shadow: var(--shadow-sm);
 }
 
 .rbc-toolbar button:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e1;
+    background: var(--color-slate-50);
+    border-color: var(--color-slate-300);
+    color: var(--color-slate-900);
 }
 
 .rbc-toolbar button.rbc-active {
-    background: #3b82f6;
+    background: var(--color-slate-900);
     color: white;
-    border-color: #3b82f6;
-    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+    border-color: var(--color-slate-900);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
-/* Header cells */
+/* Header cells (Nombres de Barberos / Días) */
 .rbc-header {
-    padding: 10px 4px;
-    font-weight: 700;
+    padding: 20px 12px;
+    font-weight: 600;
     font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #64748b;
-    border-bottom: 2px solid #e2e8f0 !important;
-    background: #f8fafc;
+    color: var(--color-slate-500);
+    border-bottom: 1px solid var(--color-slate-100) !important;
+    background: white;
+}
+
+.rbc-header+.rbc-header {
+    border-left: 1px solid var(--color-slate-50) !important;
 }
 
 /* Time gutter */
 .rbc-time-gutter .rbc-timeslot-group {
-    min-height: 60px;
+    border-bottom: none;
 }
 
 .rbc-time-gutter .rbc-label {
     font-size: 11px;
-    font-weight: 600;
-    color: #94a3b8;
-    padding: 0 8px;
+    font-weight: 500;
+    color: var(--color-slate-400);
+    padding: 0 16px;
+    text-transform: uppercase;
 }
 
-/* Time slots */
+/* Time slots / Grid lines */
+.rbc-time-view {
+    border: 1px solid var(--color-slate-100);
+    border-radius: 16px;
+    overflow: hidden;
+    background: white;
+    box-shadow: var(--shadow-sm);
+}
+
 .rbc-timeslot-group {
-    min-height: 60px;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.rbc-time-slot {
-    border-top: 1px solid #f8fafc;
+    min-height: 72px;
+    border-bottom: 1px solid var(--color-slate-50);
 }
 
 .rbc-day-slot .rbc-time-slot {
-    border-top: 1px dotted #e2e8f0;
+    border-top: 1px solid var(--color-slate-50);
 }
 
-/* Events */
+/* Empty slots hover effect */
+.rbc-day-slot .rbc-time-slot:hover {
+    background-color: var(--color-slate-50);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+/* Events (Tarjetas de Turnos) */
 .rbc-event {
-    border-radius: 6px !important;
+    border-radius: 8px !important;
     border: none !important;
-    padding: 4px 8px !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
-    transition: transform 0.1s, box-shadow 0.1s !important;
+    padding: 0 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+    overflow: hidden;
+    transition: all 0.2s ease !important;
 }
 
 .rbc-event:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    z-index: 10 !important;
-}
-
-.rbc-event-label {
-    font-size: 10px !important;
-    font-weight: 500 !important;
-    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    filter: brightness(0.98);
 }
 
 .rbc-event-content {
+    padding: 10px 12px !important;
     font-size: 12px !important;
+    font-weight: 600 !important;
+    line-height: 1.4;
 }
 
-/* Background events (bloqueos) */
+/* Estados de los Turnos - Minimalista */
+
+/* PENDIENTE y EN_CURSO (Gris muy suave con acento oscuro) */
+.turno-pendiente,
+.turno-en-curso {
+    background-color: var(--color-slate-50) !important;
+    color: var(--color-slate-900) !important;
+    border-left: 4px solid var(--color-slate-900) !important;
+}
+
+/* FINALIZADO (Gris neutro desaturado) */
+.turno-finalizado {
+    background-color: #fafafa !important;
+    color: var(--color-slate-400) !important;
+    border-left: 4px solid var(--color-slate-200) !important;
+    text-decoration: line-through;
+}
+
+/* CANCELADO / NO ASISTIO (Casi invisible) */
+.turno-cancelado,
+.turno-no-asistio {
+    background-color: transparent !important;
+    color: var(--color-slate-300) !important;
+    border: 1px dashed var(--color-slate-200) !important;
+    opacity: 0.6;
+}
+
+/* Background events (Bloqueos / Descansos) */
 .rbc-background-event {
     background: repeating-linear-gradient(45deg,
-            rgba(148, 163, 184, 0.15),
-            rgba(148, 163, 184, 0.15) 4px,
-            rgba(148, 163, 184, 0.08) 4px,
-            rgba(148, 163, 184, 0.08) 8px) !important;
-    border: 1px dashed #94a3b8 !important;
-    border-radius: 4px !important;
-    opacity: 1 !important;
-    pointer-events: none !important;
-    color: #64748b !important;
-    font-size: 10px !important;
-    font-weight: 600 !important;
+            var(--color-slate-50),
+            var(--color-slate-50) 8px,
+            white 8px,
+            white 16px) !important;
+    opacity: 0.8 !important;
+    border: none !important;
 }
 
 /* Current time indicator */
 .rbc-current-time-indicator {
-    background-color: #ef4444;
-    height: 2px;
+    background-color: var(--color-slate-900);
+    height: 1px;
 }
 
 .rbc-current-time-indicator::before {
     content: '';
     position: absolute;
-    left: -5px;
+    left: -4px;
     top: -4px;
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    background: #ef4444;
+    background: var(--color-slate-900);
+    border: 2px solid white;
 }
 
 /* Today highlight */
 .rbc-today {
-    background-color: rgba(59, 130, 246, 0.04) !important;
+    background-color: transparent !important;
 }
 
 /* Selection */
 .rbc-slot-selection {
-    background: rgba(59, 130, 246, 0.15) !important;
-    border: 2px dashed #3b82f6 !important;
-    border-radius: 4px;
+    background: var(--color-slate-50) !important;
+    border: 1px dashed var(--color-slate-300) !important;
 }
 
-/* Drag & Drop styles */
-.rbc-addons-dnd .rbc-addons-dnd-row-body,
-.rbc-addons-dnd .rbc-addons-dnd-drag-row {
-    position: relative;
+/* Remove hard borders from all-day and other sections */
+.rbc-time-header.rbc-overflowing {
+    border-right: 1px solid var(--color-slate-100);
 }
 
-.rbc-addons-dnd-dragged-event {
-    opacity: 0 !important;
+.rbc-time-header-content {
+    border-left: 1px solid var(--color-slate-100);
 }
 
-.rbc-addons-dnd-drag-preview {
-    opacity: 0.7 !important;
-    border: 2px solid #3b82f6 !important;
+.rbc-day-bg+.rbc-day-bg {
+    border-left: 1px solid var(--color-slate-100);
 }
 
-.rbc-addons-dnd-resize-ns-icon {
-    display: none;
+.rbc-month-view,
+.rbc-month-row {
+    border-color: var(--color-slate-100) !important;
 }
 
-/* ── Dark mode overrides ───────────────────────────────────────────── */
-.dark .rbc-toolbar button {
-    background: #1f2937;
-    color: #d1d5db;
-    border-color: #374151;
-}
-
-.dark .rbc-toolbar button:hover {
-    background: #374151;
-    border-color: #4b5563;
-}
-
-.dark .rbc-toolbar button.rbc-active {
-    background: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
+/* ── Dark mode overrides (Gris Oscuro Elegante) ───────────────── */
+.dark .rbc-time-view {
+    border-color: var(--color-slate-800);
+    background: var(--color-slate-900);
 }
 
 .dark .rbc-header {
-    background: #111827;
-    color: #9ca3af;
-    border-bottom-color: #374151 !important;
+    background: var(--color-slate-900);
+    color: var(--color-slate-400);
+    border-bottom-color: var(--color-slate-800) !important;
 }
 
-.dark .rbc-time-content {
-    border-top: 2px solid #374151;
+.dark .rbc-header+.rbc-header {
+    border-left-color: var(--color-slate-800) !important;
 }
 
-.dark .rbc-time-gutter .rbc-label {
-    color: #6b7280;
-}
-
-.dark .rbc-timeslot-group {
-    border-bottom-color: #1f2937;
-}
-
+.dark .rbc-timeslot-group,
 .dark .rbc-day-slot .rbc-time-slot {
-    border-top-color: #1f2937;
+    border-color: var(--color-slate-800);
 }
 
-.dark .rbc-time-view,
-.dark .rbc-time-content,
-.dark .rbc-time-header {
-    border-color: #374151;
+.dark .rbc-day-slot .rbc-time-slot:hover {
+    background-color: var(--color-slate-800);
 }
 
-.dark .rbc-day-bg+.rbc-day-bg {
-    border-left-color: #374151;
+.dark .rbc-toolbar button {
+    background: var(--color-slate-800);
+    color: var(--color-slate-300);
+    border-color: var(--color-slate-700);
 }
 
-.dark .rbc-today {
-    background-color: rgba(59, 130, 246, 0.08) !important;
+/* Dark mode turnos states */
+.dark .turno-pendiente,
+.dark .turno-en-curso {
+    background-color: var(--color-slate-800) !important;
+    color: white !important;
+    border-left-color: white !important;
 }
 
-.dark .rbc-background-event {
-    background: repeating-linear-gradient(45deg,
-            rgba(75, 85, 99, 0.3),
-            rgba(75, 85, 99, 0.3) 4px,
-            rgba(75, 85, 99, 0.15) 4px,
-            rgba(75, 85, 99, 0.15) 8px) !important;
-    border-color: #4b5563 !important;
-    color: #9ca3af !important;
-}
-
-.dark .rbc-slot-selection {
-    background: rgba(59, 130, 246, 0.25) !important;
-}
-
-.dark .rbc-off-range-bg {
-    background: #0f172a;
+.dark .turno-finalizado {
+    background-color: rgba(30, 41, 59, 0.4) !important;
+    color: var(--color-slate-500) !important;
+    border-left-color: var(--color-slate-700) !important;
 }
