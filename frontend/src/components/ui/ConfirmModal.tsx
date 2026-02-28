@@ -28,25 +28,25 @@ interface ConfirmModalProps {
 const typeConfig = {
     danger: {
         icon: AlertTriangle,
-        iconClass: 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400',
+        iconClass: 'bg-red-50 text-red-600',
         buttonVariant: 'primary' as const, // We'll style it specifically if needed
         buttonClass: 'bg-red-600 hover:bg-red-700 text-white border-red-600',
     },
     warning: {
         icon: HelpCircle,
-        iconClass: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
+        iconClass: 'bg-amber-50 text-amber-600',
         buttonVariant: 'primary' as const,
         buttonClass: 'bg-amber-600 hover:bg-amber-700 text-white border-amber-600',
     },
     info: {
         icon: HelpCircle,
-        iconClass: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+        iconClass: 'bg-blue-50 text-blue-600',
         buttonVariant: 'primary' as const,
         buttonClass: 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600',
     },
     success: {
         icon: CheckCircle2,
-        iconClass: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
+        iconClass: 'bg-emerald-50 text-emerald-600',
         buttonVariant: 'primary' as const,
         buttonClass: 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600',
     }
@@ -79,11 +79,11 @@ export default function ConfirmModal({
                     <Icon className="w-8 h-8" />
                 </div>
 
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">
+                <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">
                     {title}
                 </h3>
 
-                <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-[280px]">
+                <p className="text-slate-500 font-medium leading-relaxed max-w-[280px]">
                     {message}
                 </p>
 
@@ -107,7 +107,7 @@ export default function ConfirmModal({
                     <button
                         onClick={onClose}
                         disabled={loading}
-                        className="w-full py-4 rounded-2xl text-sm font-bold text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                        className="w-full py-4 rounded-2xl text-sm font-bold text-slate-400 hover:text-slate-900 transition-colors"
                     >
                         {cancelText}
                     </button>

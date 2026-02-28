@@ -48,21 +48,21 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
                 <div className="text-center">
-                    <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+                    <h2 className="text-3xl font-black text-gray-900 tracking-tight">
                         Crea tu Barbería
                     </h2>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    <p className="mt-2 text-sm text-gray-600">
                         Regístrate como administrador para empezar
                     </p>
                 </div>
 
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-4 rounded-xl" role="alert" aria-live="polite">
-                            <p className="text-red-700 dark:text-red-400 text-sm font-medium">{error}</p>
+                        <div className="bg-red-50 border border-red-200 p-4 rounded-xl" role="alert" aria-live="polite">
+                            <p className="text-red-700 text-sm font-medium">{error}</p>
                         </div>
                     )}
 
@@ -121,9 +121,9 @@ export default function RegisterPage() {
                     </Button>
 
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-gray-600">
                             ¿Ya tienes una cuenta?{' '}
-                            <a href="/login" className="font-bold text-blue-600 hover:text-blue-500 dark:text-blue-400 transition-colors">
+                            <a href="/login" className="font-bold text-blue-600 hover:text-blue-500 transition-colors">
                                 Inicia sesión
                             </a>
                         </p>

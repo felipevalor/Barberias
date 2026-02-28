@@ -39,6 +39,18 @@ export class ClienteController {
             res.status(400).json({ error: error.message });
         }
     }
+
+    async deleteCliente(req: AuthRequest, res: Response) {
+        try {
+            const { barberiaId } = req.user!;
+            const id = req.params.id as string;
+
+            await clienteService.deleteCliente(id, barberiaId!);
+            res.status(200).json({ message: 'Cliente eliminado correctamente' });
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    }
 }
 
 export const clienteController = new ClienteController();

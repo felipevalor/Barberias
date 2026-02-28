@@ -3,8 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
-import { Package, Search, Plus, AlertTriangle, Edit, Trash2 } from 'lucide-react';
+import { Package, Search, PlusCircle, AlertTriangle, Edit, Trash2, DollarSign, Layers } from 'lucide-react';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import Button from '@/components/ui/Button';
+import toast from 'react-hot-toast';
+
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export default function ProductosPage() {
     const [productos, setProductos] = useState<any[]>([]);
@@ -19,7 +23,7 @@ export default function ProductosPage() {
     const fetchProductos = async () => {
         try {
             setLoading(true);
-            const url = new URL('http://localhost:3001/api/productos');
+            const url = new URL(`${API}/productos`);
             if (searchQuery) url.searchParams.append('q', searchQuery);
 
             const res = await fetch(url.toString(), {
@@ -29,7 +33,8 @@ export default function ProductosPage() {
             if (res.ok) {
                 setProductos(await res.json());
             }
-        } catch (err) {
+        } catch (err: any) {
+            toast.error('Error al cargar inventario');
             console.error(err);
         } finally {
             setLoading(false);
@@ -53,13 +58,18 @@ export default function ProductosPage() {
 
         setIsDeleting(true);
         try {
-            const res = await fetch(`http://localhost:3001/api/productos/${productToDelete.id}`, {
+            const res = await fetch(`${API}/productos/${productToDelete.id}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });
-            if (res.ok) fetchProductos();
-        } catch (err) {
-            console.error('Error eliminando producto', err);
+            if (res.ok) {
+                toast.success('Producto eliminado exitosamente');
+                fetchProductos();
+            } else {
+                throw new Error('No se pudo eliminar el producto');
+            }
+        } catch (err: any) {
+            toast.error(err.message);
         } finally {
             setIsDeleting(false);
             setIsConfirmOpen(false);
@@ -67,116 +77,124 @@ export default function ProductosPage() {
         }
     };
 
+    if (loading && productos.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+                <div className="w-10 h-10 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                <p className="text-slate-500 font-medium animate-pulse">Cargando inventario...</p>
+            </div>
+        );
+    }
+
     return (
-        <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="max-w-6xl mx-auto space-y-8 pb-12">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                        <Package className="w-6 h-6 mr-2 text-blue-600" />
-                        Inventario de Productos
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tight flex items-center">
+                        <Package className="w-7 h-7 mr-3 text-indigo-600" />
+                        Inventario
                     </h2>
-                    <p className="text-gray-500 text-sm mt-1">Gesti&oacute;n de stock y precios de venta</p>
+                    <p className="text-slate-500 font-medium mt-1">Gesti&oacute;n de stock y precios de venta de productos.</p>
                 </div>
 
-                <div className="flex w-full sm:w-auto space-x-3">
+                <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3">
                     <div className="relative flex-1 sm:w-64">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search className="h-5 w-5 text-gray-400" />
+                            <Search className="h-4 w-4 text-slate-400" />
                         </div>
                         <input
                             type="text"
-                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                            className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 rounded-xl leading-5 bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm shadow-sm transition-all"
                             placeholder="Buscar producto..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
                     {isAdmin && (
-                        <Link
-                            href="/dashboard/productos/new"
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center font-medium shadow-sm whitespace-nowrap"
-                        >
-                            <Plus className="w-5 h-5 mr-1" /> Nuevo Producto
+                        <Link href="/dashboard/productos/new">
+                            <Button
+                                leftIcon={<PlusCircle className="w-4 h-4" />}
+                                className="shadow-sm hover:shadow-md transition-all h-[42px] bg-indigo-600 hover:bg-indigo-700 w-full"
+                            >
+                                Nuevo Producto
+                            </Button>
                         </Link>
                     )}
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-                {loading && productos.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500">Cargando inventario...</div>
-                ) : productos.length === 0 ? (
-                    <div className="p-12 text-center flex flex-col items-center">
-                        <div className="bg-gray-100 dark:bg-gray-700 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                            <Package className="w-8 h-8 text-gray-400" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {productos.length === 0 && !loading ? (
+                    <div className="col-span-full bg-white border border-slate-200 border-dashed rounded-3xl p-12 text-center">
+                        <div className="bg-slate-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <Package className="w-8 h-8 text-slate-300" />
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">Inventario Vacío</h3>
-                        <p className="text-gray-500 mb-4 text-sm max-w-sm">No hay productos registrados. Agrega ceras, aceites u otros artículos para poder venderlos en caja.</p>
+                        <h3 className="text-lg font-bold text-slate-900 mb-1">Inventario Vacío</h3>
+                        <p className="text-slate-500 text-sm mb-6 max-w-xs mx-auto">No hay productos registrados en tu stock. Agrega artículos de venta.</p>
                         {isAdmin && (
-                            <Link href="/dashboard/productos/new" className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 font-bold py-2 px-6 rounded-lg hover:bg-blue-200 transition">
-                                Agregar Primer Producto
+                            <Link href="/dashboard/productos/new">
+                                <Button className="h-10 text-xs bg-indigo-600 hover:bg-indigo-700">Añadir Primer Producto</Button>
                             </Link>
                         )}
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead className="bg-gray-50 dark:bg-gray-900/50">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
-                                    <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Disponible</th>
-                                    {isAdmin && <th scope="col" className="relative px-6 py-3"><span className="sr-only">Acciones</span></th>}
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 text-sm">
-                                {productos.map((prod) => {
-                                    const stockBajo = prod.stockActual <= prod.stockMinimo;
+                    productos.map((prod) => {
+                        const isLowStock = prod.stockActual <= prod.stockMinimo;
 
-                                    return (
-                                        <tr key={prod.id} className="hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="font-bold text-gray-900 dark:text-white">{prod.nombre}</div>
-                                                {prod.descripcion && <div className="text-xs text-gray-500 mt-0.5 truncate max-w-[200px]">{prod.descripcion}</div>}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="font-black text-blue-600 dark:text-blue-400">${prod.precioVenta}</span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                <div className="flex flex-col items-center justify-center">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold mx-auto border ${stockBajo ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800' : 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'}`}>
-                                                        {prod.stockActual} u.
-                                                    </span>
-                                                    {stockBajo && (
-                                                        <span className="text-[10px] text-red-600 dark:text-red-400 mt-1 flex items-center font-bold uppercase">
-                                                            <AlertTriangle className="w-3 h-3 mr-0.5" /> Stock Bajo
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            {isAdmin && (
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <div className="flex items-center justify-end space-x-2">
-                                                        {/* TODO: Implementar vista de edición */}
-                                                        <button className="text-gray-400 hover:text-blue-600 transition p-2 disabled:opacity-50" disabled title="Editar próximamente">
-                                                            <Edit className="w-4 h-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteClick(prod.id, prod.nombre)}
-                                                            className="text-gray-400 hover:text-red-600 transition p-2"
-                                                            title="Eliminar producto"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            )}
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+                        return (
+                            <div key={prod.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group relative flex flex-col h-full hover:border-indigo-300">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className="w-12 h-12 bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center rounded-xl text-xl font-black shadow-inner">
+                                        {prod.nombre.charAt(0)}
+                                    </div>
+                                    <div className="flex bg-white shadow-sm border border-slate-100 rounded-lg p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {isAdmin && (
+                                            <>
+                                                <button className="p-1.5 text-slate-400 hover:text-blue-600 rounded-md hover:bg-slate-50 transition-colors" title="Editar">
+                                                    <Edit className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteClick(prod.id, prod.nombre)}
+                                                    className="p-1.5 text-slate-400 hover:text-red-600 rounded-md hover:bg-slate-50 transition-colors"
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex-1">
+                                    <h3 className="text-lg font-black text-slate-900 truncate" title={prod.nombre}>{prod.nombre}</h3>
+                                    <p className="text-sm text-slate-500 mt-2 line-clamp-2 leading-relaxed h-10">
+                                        {prod.descripcion || 'Sin descripción detallada.'}
+                                    </p>
+                                </div>
+
+                                <div className="mt-6 pt-5 border-t border-slate-100 grid grid-cols-2 gap-2 text-center divide-x divide-slate-100">
+                                    <div className="flex flex-col items-center justify-center">
+                                        <DollarSign className="w-4 h-4 mb-1 text-slate-400" />
+                                        <span className="text-xl font-black text-slate-900">${prod.precioVenta}</span>
+                                    </div>
+                                    <div className="flex flex-col items-center justify-center relative">
+                                        <Layers className={`w-4 h-4 mb-1 ${isLowStock ? 'text-orange-500' : 'text-indigo-500'}`} />
+                                        <span className={`text-xl font-black ${isLowStock ? 'text-orange-600' : 'text-slate-900'}`}>
+                                            {prod.stockActual}
+                                        </span>
+                                        {isLowStock && (
+                                            <div className="absolute top-0 right-2 w-2 h-2 rounded-full bg-orange-500 animate-ping"></div>
+                                        )}
+                                        {isLowStock && (
+                                            <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-1.5 rounded-sm mt-1 uppercase tracking-wider flex items-center">
+                                                <AlertTriangle className="w-2.5 h-2.5 mr-0.5" /> stock bajo
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })
                 )}
             </div>
 
@@ -185,7 +203,7 @@ export default function ProductosPage() {
                 onClose={() => setIsConfirmOpen(false)}
                 onConfirm={handleDeleteConfirm}
                 title="¿Eliminar producto?"
-                message={`¿Estás seguro de que deseas eliminar "${productToDelete?.nombre}" del inventario? Esta acción es irreversible.`}
+                message={`¿Estás seguro de que deseas eliminar permanentemente "${productToDelete?.nombre}" del inventario?`}
                 confirmText="Eliminar Producto"
                 type="danger"
                 loading={isDeleting}

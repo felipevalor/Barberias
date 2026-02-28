@@ -40,6 +40,15 @@ export class AuthService {
                 data: { barberiaId: newBarberia.id },
             });
 
+            // 4. Inicializar métodos de pago por defecto
+            await tx.metodoPago.createMany({
+                data: [
+                    { barberiaId: newBarberia.id, nombre: 'Efectivo' },
+                    { barberiaId: newBarberia.id, nombre: 'Tarjeta' },
+                    { barberiaId: newBarberia.id, nombre: 'Transferencia' }
+                ]
+            });
+
             return { user: newUser, barberia: newBarberia };
         });
 

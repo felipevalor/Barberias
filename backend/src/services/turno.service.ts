@@ -3,7 +3,21 @@ import { emailService } from './email.service';
 
 export class TurnoService {
 
+    private get tzOffset(): number {
+        return parseInt(process.env.TIMEZONE_OFFSET || '-3', 10);
+    }
+
     // ── Utilidades de Tiempo ──────────────────────────────────────────
+
+    /**
+     * Convierte una fecha UTC a hora local aplicando el offset de zona horaria.
+     * Esto permite extraer día/hora local correctamente aunque el Date
+     * internamente esté en UTC.
+     */
+    private getLocalDate(utcDate: Date): Date {
+        const localMs = utcDate.getTime() + this.tzOffset * 60 * 60 * 1000;
+        return new Date(localMs);
+    }
 
     /**
      * Convierte una hora HH:MM a minutos desde el inicio del día (00:00)
@@ -20,10 +34,12 @@ export class TurnoService {
     }
 
     /**
-     * Obtiene los minutos desde el inicio del día para una fecha dada (Local)
+     * Obtiene los minutos desde el inicio del día para una fecha dada,
+     * usando la hora LOCAL (aplica offset de zona horaria).
      */
     private dateToMinutes(date: Date): number {
-        return date.getHours() * 60 + date.getMinutes();
+        const local = this.getLocalDate(date);
+        return local.getUTCHours() * 60 + local.getUTCMinutes();
     }
 
     // ── Validaciones privadas ──────────────────────────────────────────
@@ -33,39 +49,52 @@ export class TurnoService {
      * y no se superponga con descansos ni ausencias.
      */
     private async validarHorarioLaboral(tx: any, barberoId: string, fechaInicio: Date, fechaFin: Date) {
-        // Usamos la fecha local para determinar el día de la semana
-        const diaSemana = fechaInicio.getDay();
+        // 1. Verificar disponibilidad del barbero
+        const barbero = await tx.barberoProfile.findUnique({
+            where: { id: barberoId },
+            include: { user: true }
+        });
 
+        if (!barbero || !barbero.activo) {
+            throw new Error('El barbero seleccionado no está disponible.');
+        }
+
+        // 2. Determinar día de la semana (Local)
+        const localInicio = this.getLocalDate(fechaInicio);
+        const diaSemana = localInicio.getUTCDay();
+
+        // 3. Buscar horario para ese día
         const horario = await tx.horarioLaboral.findFirst({
             where: { barberoId, diaSemana },
             include: { descansos: true }
         });
 
         if (!horario) {
-            const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-            throw new Error(`El barbero no trabaja este día (${dias[diaSemana]})`);
+            throw new Error("El barbero no trabaja este día de la semana.");
         }
 
+        // 4. Validar rangos de tiempo (Local Minutes)
         const inicioTurnoMins = this.dateToMinutes(fechaInicio);
         const finTurnoMins = this.dateToMinutes(fechaFin);
         const inicioLaboralMins = this.timeToMinutes(horario.horaInicio);
         const finLaboralMins = this.timeToMinutes(horario.horaFin);
 
         if (inicioTurnoMins < inicioLaboralMins || finTurnoMins > finLaboralMins) {
-            throw new Error(`El turno (${this.formatMins(inicioTurnoMins)} - ${this.formatMins(finTurnoMins)}) está fuera del horario laboral (${horario.horaInicio} - ${horario.horaFin})`);
+            throw new Error("El horario solicitado está fuera del horario laboral del barbero.");
         }
 
-        // Verificar descansos
+        // 5. Verificar descansos
         for (const descanso of horario.descansos) {
             const inicioDescansoMins = this.timeToMinutes(descanso.horaInicio);
             const finDescansoMins = this.timeToMinutes(descanso.horaFin);
 
+            // Solapamiento: (StartA < EndB) && (EndA > StartB)
             if (inicioTurnoMins < finDescansoMins && finTurnoMins > inicioDescansoMins) {
-                throw new Error(`El turno se superpone con el descanso (${descanso.horaInicio} - ${descanso.horaFin})`);
+                throw new Error("El horario choca con el descanso del barbero.");
             }
         }
 
-        // Verificar ausencias
+        // 6. Verificar ausencias
         const ausencia = await tx.ausencia.findFirst({
             where: {
                 barberoId,
@@ -75,7 +104,7 @@ export class TurnoService {
         });
 
         if (ausencia) {
-            throw new Error('El barbero tiene una ausencia registrada en esa fecha');
+            throw new Error('El barbero tiene una ausencia registrada en esa fecha.');
         }
     }
 
@@ -97,7 +126,7 @@ export class TurnoService {
         });
 
         if (solapamiento) {
-            throw new Error('El barbero ya tiene un turno reservado en ese horario');
+            throw new Error("El barbero ya tiene un turno asignado en ese horario.");
         }
     }
 
@@ -141,7 +170,8 @@ export class TurnoService {
                     turno.cliente.email,
                     turno.cliente.nombre,
                     turno.fechaHoraInicio,
-                    turno.servicio.nombre
+                    turno.servicio.nombre,
+                    turno.barbero.user.nombre
                 ).catch(console.error);
             }
 
@@ -249,16 +279,20 @@ export class TurnoService {
         const currentDate = new Date(fechaInicio);
 
         while (currentDate <= fechaFin) {
-            const diaSemana = currentDate.getUTCDay();
+            const localCurrent = this.getLocalDate(currentDate);
+            const diaSemana = localCurrent.getUTCDay();
 
             for (const barbero of barberos) {
                 const horarioDelDia = barbero.horarios.find((h: any) => h.diaSemana === diaSemana);
 
+                // baseDate uses the correct local year/month/date
+                const anio = localCurrent.getUTCFullYear();
+                const mes = localCurrent.getUTCMonth();
+                const dia = localCurrent.getUTCDate();
+
                 if (!horarioDelDia) {
-                    const diaStart = new Date(currentDate);
-                    diaStart.setUTCHours(0, 0, 0, 0);
-                    const diaEnd = new Date(currentDate);
-                    diaEnd.setUTCHours(23, 59, 59, 999);
+                    const diaStart = new Date(Date.UTC(anio, mes, dia, 0 - this.tzOffset, 0, 0, 0));
+                    const diaEnd = new Date(Date.UTC(anio, mes, dia, 23 - this.tzOffset, 59, 59, 999));
 
                     bloqueos.push({
                         barberoId: barbero.id,
@@ -276,10 +310,9 @@ export class TurnoService {
                         const hF = Number(hFStr) || 0;
                         const mF = Number(mFStr) || 0;
 
-                        const inicio = new Date(currentDate);
-                        inicio.setUTCHours(hI, mI, 0, 0);
-                        const fin = new Date(currentDate);
-                        fin.setUTCHours(hF, mF, 0, 0);
+                        // Convert local time components to UTC: UTC = Local - Offset
+                        const inicio = new Date(Date.UTC(anio, mes, dia, hI - this.tzOffset, mI, 0, 0));
+                        const fin = new Date(Date.UTC(anio, mes, dia, hF - this.tzOffset, mF, 0, 0));
 
                         bloqueos.push({
                             barberoId: barbero.id,

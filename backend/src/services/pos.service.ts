@@ -2,9 +2,25 @@ import { prisma } from '../config/db';
 
 export class POSService {
     async getMetodosPago(barberiaId: string) {
-        return prisma.metodoPago.findMany({
+        const metodos = await prisma.metodoPago.findMany({
             where: { barberiaId, activo: true }
         });
+
+        if (metodos.length === 0) {
+            // Initialize defaults if none exist
+            await prisma.metodoPago.createMany({
+                data: [
+                    { barberiaId, nombre: 'Efectivo' },
+                    { barberiaId, nombre: 'Tarjeta' },
+                    { barberiaId, nombre: 'Transferencia' }
+                ]
+            });
+            return prisma.metodoPago.findMany({
+                where: { barberiaId, activo: true }
+            });
+        }
+
+        return metodos;
     }
 
     async createMetodoPago(barberiaId: string, nombre: string) {

@@ -69,7 +69,7 @@ export default function NewStaffPage() {
                     </div>
                     <div>
                         <h2 className="text-3xl font-black text-slate-900 tracking-tight">Nuevo Personal</h2>
-                        <p className="text-slate-400 font-medium">Registra un nuevo barbero en tu sistema.</p>
+                        <p className="text-slate-500 font-medium">Registra un nuevo barbero en tu sistema.</p>
                     </div>
                 </div>
             </div>

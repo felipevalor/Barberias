@@ -78,10 +78,10 @@ export default function ClienteDetallePage({ params }: { params: Promise<{ id: s
     return (
         <div className="max-w-5xl mx-auto pb-12">
             <div className="mb-6 flex space-x-4 items-center">
-                <Link href="/dashboard/clientes" className="p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50">
+                <Link href="/dashboard/clientes" className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50">
                     <ArrowLeft className="w-5 h-5" />
                 </Link>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Ficha del Cliente</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Ficha del Cliente</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -89,19 +89,19 @@ export default function ClienteDetallePage({ params }: { params: Promise<{ id: s
                 {/* Columna Izquierda: Perfil y Notas */}
                 <div className="md:col-span-1 space-y-6">
                     {/* Card Principal */}
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 text-center">
-                        <div className="w-24 h-24 mx-auto bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-4xl mb-4">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
+                        <div className="w-24 h-24 mx-auto bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-4xl mb-4">
                             {cliente.nombre.charAt(0).toUpperCase()}
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">{cliente.nombre}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 mb-1">{cliente.nombre}</h3>
                         <p className="text-gray-500 text-sm mb-6">Cliente desde {format(new Date(cliente.createdAt), 'MMM yyyy', { locale: es })}</p>
 
                         <div className="space-y-4 text-left">
-                            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 p-3 rounded-lg">
+                            <div className="flex items-center text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
                                 <Phone className="w-4 h-4 mr-3 text-gray-400" />
                                 {cliente.telefono || 'Sin teléfono'}
                             </div>
-                            <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 p-3 rounded-lg">
+                            <div className="flex items-center text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
                                 <Mail className="w-4 h-4 mr-3 text-gray-400" />
                                 {cliente.email || 'Sin correo electrónico'}
                             </div>
@@ -109,9 +109,9 @@ export default function ClienteDetallePage({ params }: { params: Promise<{ id: s
                     </div>
 
                     {/* Notas y Preferencias (RF-21) */}
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-                        <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 flex justify-between items-center">
-                            <h4 className="font-semibold text-gray-900 dark:text-white flex items-center">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                            <h4 className="font-semibold text-gray-900 flex items-center">
                                 <FileText className="w-4 h-4 mr-2 text-gray-500" />
                                 Notas de Preferencias
                             </h4>
@@ -125,7 +125,7 @@ export default function ClienteDetallePage({ params }: { params: Promise<{ id: s
                                     <textarea
                                         value={notesDraft}
                                         onChange={(e) => setNotesDraft(e.target.value)}
-                                        className="w-full h-32 p-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-700 dark:text-white"
+                                        className="w-full h-32 p-3 border border-gray-300 rounded-lg text-sm bg-gray-50"
                                         placeholder="Escribe características o preferencias especiales para este cliente... (Ej: Usar tijera, piel sensible a la navaja)."
                                     />
                                     <div className="flex justify-end space-x-2">
@@ -136,7 +136,7 @@ export default function ClienteDetallePage({ params }: { params: Promise<{ id: s
                                     </div>
                                 </div>
                             ) : (
-                                <p className={`text-sm ${cliente.notasPreferencias ? 'text-gray-700 dark:text-gray-300 whitespace-pre-line' : 'text-gray-400 italic'}`}>
+                                <p className={`text-sm ${cliente.notasPreferencias ? 'text-gray-700 whitespace-pre-line' : 'text-gray-400 italic'}`}>
                                     {cliente.notasPreferencias || 'No hay notas guardadas. Has click en editar para agregar detalles.'}
                                 </p>
                             )}
@@ -148,9 +148,9 @@ export default function ClienteDetallePage({ params }: { params: Promise<{ id: s
                 <div className="md:col-span-2 space-y-6">
 
                     {/* Próximas Citas */}
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-blue-50/30 dark:bg-gray-900/50">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+                        <div className="px-6 py-4 border-b border-gray-100 bg-blue-50/30">
+                            <h3 className="text-lg font-bold text-gray-900 flex items-center">
                                 <CalendarDays className="w-5 h-5 mr-2 text-blue-600" />
                                 Próximos Turnos ({futureTurnos.length})
                             </h3>
@@ -159,26 +159,26 @@ export default function ClienteDetallePage({ params }: { params: Promise<{ id: s
                             {futureTurnos.length === 0 ? (
                                 <div className="p-6 text-center text-sm text-gray-500">No hay turnos futuros programados.</div>
                             ) : (
-                                <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                                <ul className="divide-y divide-gray-100">
                                     {futureTurnos.map((turno: any) => (
-                                        <li key={turno.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-900/50 transition">
+                                        <li key={turno.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-50 transition">
                                             <div className="flex items-start mb-4 sm:mb-0">
-                                                <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-xl mr-4 text-center min-w-[60px]">
-                                                    <span className="block text-xl font-bold text-blue-700 dark:text-blue-400">{format(new Date(turno.fechaHoraInicio), 'd')}</span>
-                                                    <span className="block text-xs font-medium text-blue-600 dark:text-blue-500 uppercase">{format(new Date(turno.fechaHoraInicio), 'MMM', { locale: es })}</span>
+                                                <div className="bg-blue-100 p-3 rounded-xl mr-4 text-center min-w-[60px]">
+                                                    <span className="block text-xl font-bold text-blue-700">{format(new Date(turno.fechaHoraInicio), 'd')}</span>
+                                                    <span className="block text-xs font-medium text-blue-600 uppercase">{format(new Date(turno.fechaHoraInicio), 'MMM', { locale: es })}</span>
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-bold text-gray-900 dark:text-white">{turno.servicio?.nombre}</h4>
+                                                    <h4 className="font-bold text-gray-900">{turno.servicio?.nombre}</h4>
                                                     <p className="text-sm text-gray-500 mt-1 flex items-center">
                                                         <Clock className="w-3.5 h-3.5 mr-1" />
                                                         {format(new Date(turno.fechaHoraInicio), 'HH:mm')} - {format(new Date(turno.fechaHoraFin), 'HH:mm')} hs
                                                     </p>
-                                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Con: {turno.barbero?.user?.nombre}</p>
+                                                    <p className="text-sm text-gray-600 mt-1">Con: {turno.barbero?.user?.nombre}</p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
                                                 {getStatusBadge(turno.estado)}
-                                                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-2">${turno.servicio?.precio}</p>
+                                                <p className="text-sm font-semibold text-gray-900 mt-2">${turno.servicio?.precio}</p>
                                             </div>
                                         </li>
                                     ))}
@@ -188,9 +188,9 @@ export default function ClienteDetallePage({ params }: { params: Promise<{ id: s
                     </div>
 
                     {/* Historial (Turnos Pasados) */}
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-                        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-gray-900 flex items-center">
                                 <History className="w-5 h-5 mr-2 text-gray-500" />
                                 Historial Pasado ({pastTurnos.length})
                             </h3>
@@ -199,18 +199,18 @@ export default function ClienteDetallePage({ params }: { params: Promise<{ id: s
                             {pastTurnos.length === 0 ? (
                                 <div className="p-6 text-center text-sm text-gray-500">Aún no hay visitas pasadas registradas.</div>
                             ) : (
-                                <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                                <ul className="divide-y divide-gray-100">
                                     {pastTurnos.map((turno: any) => (
                                         <li key={turno.id} className="px-6 py-4 flex items-center justify-between opacity-80 hover:opacity-100 transition">
                                             <div>
                                                 <div className="flex items-center space-x-3 mb-1">
-                                                    <span className="text-sm font-medium text-gray-900 dark:text-gray-200">{format(new Date(turno.fechaHoraInicio), 'd MMM yyyy', { locale: es })}</span>
+                                                    <span className="text-sm font-medium text-gray-900">{format(new Date(turno.fechaHoraInicio), 'd MMM yyyy', { locale: es })}</span>
                                                     {getStatusBadge(turno.estado)}
                                                 </div>
-                                                <p className="text-sm font-bold text-gray-800 dark:text-gray-300">{turno.servicio?.nombre}</p>
+                                                <p className="text-sm font-bold text-gray-800">{turno.servicio?.nombre}</p>
                                                 <p className="text-xs text-gray-500 mt-1">Atendido por {turno.barbero?.user?.nombre}</p>
                                             </div>
-                                            <span className="font-medium text-gray-600 dark:text-gray-400">${turno.servicio?.precio}</span>
+                                            <span className="font-medium text-gray-600">${turno.servicio?.precio}</span>
                                         </li>
                                     ))}
                                 </ul>

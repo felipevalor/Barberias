@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { Save, ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
@@ -17,27 +18,73 @@ export default function HorariosPage({ params }: { params: Promise<{ id: string 
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
-    // Inicializar estructura de días
+    const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+
+    // Inicializar estructura de días y cargar datos del backend
     useEffect(() => {
-        // Si estuviéramos obteniendo el horario existente del barbero, lo cargaríamos aquí.
-        // Por simplicidad en este MVP, iniciamos con un esquema vacío basado en L-V.
-        const initialConfig = [1, 2, 3, 4, 5].map(dia => ({
-            diaSemana: dia,
-            activo: true,
-            horaInicio: '09:00',
-            horaFin: '18:00',
-            descansos: [{ horaInicio: '13:00', horaFin: '14:00' }]
-        }));
+        const fetchHorarios = async () => {
+            try {
+                // Obtener datos del barbero
+                const res = await fetch(`${API}/staff/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
 
-        // Añadimos sábado y domingo inactivos por defecto
-        initialConfig.push(
-            { diaSemana: 6, activo: false, horaInicio: '09:00', horaFin: '14:00', descansos: [] },
-            { diaSemana: 0, activo: false, horaInicio: '10:00', horaFin: '14:00', descansos: [] }
-        );
+                if (!res.ok) throw new Error('Error al cargar datos del barbero');
 
-        setHorarios(initialConfig.sort((a, b) => a.diaSemana - b.diaSemana));
-        setLoading(false);
-    }, []);
+                const barbero = await res.json();
+                const horariosGuardados = barbero.horarios || [];
+
+                // Crear esquema vacío L-V
+                const initialConfig = [1, 2, 3, 4, 5].map(dia => ({
+                    diaSemana: dia,
+                    activo: false,
+                    horaInicio: '09:00',
+                    horaFin: '18:00',
+                    descansos: [{ horaInicio: '13:00', horaFin: '14:00' }]
+                }));
+
+                // Añadimos sábado y domingo inactivos por defecto
+                initialConfig.push(
+                    { diaSemana: 6, activo: false, horaInicio: '09:00', horaFin: '14:00', descansos: [] },
+                    { diaSemana: 0, activo: false, horaInicio: '10:00', horaFin: '14:00', descansos: [] }
+                );
+
+                // Si hay horarios guardados, aplicarlos sobre la configuración inicial
+                if (horariosGuardados.length > 0) {
+                    horariosGuardados.forEach((hg: any) => {
+                        const index = initialConfig.findIndex(c => c.diaSemana === hg.diaSemana);
+                        if (index !== -1) {
+                            initialConfig[index] = {
+                                ...initialConfig[index],
+                                activo: true,
+                                horaInicio: hg.horaInicio,
+                                horaFin: hg.horaFin,
+                                descansos: hg.descansos || []
+                            };
+                        }
+                    });
+                } else {
+                    // Si no hay nada guardado, activamos de L a V por defecto
+                    initialConfig.forEach(c => {
+                        if (c.diaSemana >= 1 && c.diaSemana <= 5) {
+                            c.activo = true;
+                        }
+                    });
+                }
+
+                setHorarios(initialConfig.sort((a, b) => a.diaSemana - b.diaSemana));
+            } catch (err) {
+                console.error("Error al cargar horarios:", err);
+                toast.error("No se pudieron cargar los horarios del barbero.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (token && id) {
+            fetchHorarios();
+        }
+    }, [token, id]);
 
     const handleToggleDia = (index: number) => {
         const newHorarios = [...horarios];
@@ -74,12 +121,18 @@ export default function HorariosPage({ params }: { params: Promise<{ id: string 
         setError('');
 
         try {
-            // Filtrar sólo los días activos
+            // Filtrar sólo los días activos y limpiar IDs de descansos para evitar errores en Prisma
             const payload = horarios
                 .filter(h => h.activo)
-                .map(({ activo, ...rest }) => rest);
+                .map(({ activo, ...rest }) => ({
+                    ...rest,
+                    descansos: (rest.descansos || []).map((d: any) => ({
+                        horaInicio: d.horaInicio,
+                        horaFin: d.horaFin
+                    }))
+                }));
 
-            const res = await fetch(`http://localhost:3001/api/staff/${id}/horarios`, {
+            const res = await fetch(`${API}/staff/${id}/horarios`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -104,10 +157,10 @@ export default function HorariosPage({ params }: { params: Promise<{ id: string 
         <div className="max-w-4xl mx-auto pb-12">
             <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center">
-                    <Link href="/dashboard/staff" className="mr-4 text-gray-500 hover:text-gray-900 dark:hover:text-white transition">
+                    <Link href="/dashboard/staff" className="mr-4 text-gray-500 hover:text-gray-900 transition">
                         <ArrowLeft className="w-6 h-6" />
                     </Link>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Configurar Horario Laboral</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">Configurar Horario Laboral</h2>
                 </div>
                 <button
                     onClick={handleSave}
@@ -120,7 +173,7 @@ export default function HorariosPage({ params }: { params: Promise<{ id: string 
             </div>
 
             {error && (
-                <div className="mb-4 bg-red-50 dark:bg-red-900/30 text-red-600 p-4 rounded-lg text-sm">
+                <div className="mb-4 bg-red-50 text-red-600 p-4 rounded-lg text-sm">
                     {error}
                 </div>
             )}
@@ -129,7 +182,7 @@ export default function HorariosPage({ params }: { params: Promise<{ id: string 
                 {horarios.map((horario, index) => (
                     <div
                         key={horario.diaSemana}
-                        className={`p-5 rounded-xl border ${horario.activo ? 'bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-900/50 shadow-sm' : 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-750 opacity-75'}`}
+                        className={`p-5 rounded-xl border ${horario.activo ? 'bg-white border-blue-200 shadow-sm' : 'bg-gray-50 border-gray-200 opacity-75'}`}
                     >
                         <div className="flex items-center mb-4">
                             <label className="flex items-center cursor-pointer">
@@ -139,7 +192,7 @@ export default function HorariosPage({ params }: { params: Promise<{ id: string 
                                     onChange={() => handleToggleDia(index)}
                                     className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                 />
-                                <span className={`ml-3 text-lg font-medium ${horario.activo ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
+                                <span className={`ml-3 text-lg font-medium ${horario.activo ? 'text-gray-900' : 'text-gray-500'}`}>
                                     {DIAS[horario.diaSemana]}
                                 </span>
                             </label>
@@ -154,7 +207,7 @@ export default function HorariosPage({ params }: { params: Promise<{ id: string 
                                             type="time"
                                             value={horario.horaInicio}
                                             onChange={(e) => handleChangeTime(index, 'horaInicio', e.target.value)}
-                                            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                                            className="px-3 py-2 border border-gray-300 rounded-lg"
                                         />
                                     </div>
                                     <span className="text-gray-400 pt-5">-</span>
@@ -164,14 +217,14 @@ export default function HorariosPage({ params }: { params: Promise<{ id: string 
                                             type="time"
                                             value={horario.horaFin}
                                             onChange={(e) => handleChangeTime(index, 'horaFin', e.target.value)}
-                                            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                                            className="px-3 py-2 border border-gray-300 rounded-lg"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+                                <div className="pt-2 border-t border-gray-100">
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Descansos (Almuerzo)</span>
+                                        <span className="text-sm font-medium text-gray-700">Descansos (Almuerzo)</span>
                                         <button
                                             onClick={() => handleAddDescanso(index)}
                                             className="text-xs text-blue-600 hover:text-blue-800 flex items-center"
@@ -186,19 +239,19 @@ export default function HorariosPage({ params }: { params: Promise<{ id: string 
                                     ) : (
                                         <div className="space-y-2">
                                             {horario.descansos.map((descanso: any, dIndex: number) => (
-                                                <div key={dIndex} className="flex items-center space-x-3 bg-gray-50 dark:bg-gray-900 p-2 rounded-lg inline-flex">
+                                                <div key={dIndex} className="flex items-center space-x-3 bg-gray-50 p-2 rounded-lg inline-flex">
                                                     <input
                                                         type="time"
                                                         value={descanso.horaInicio}
                                                         onChange={(e) => handleChangeDescanso(index, dIndex, 'horaInicio', e.target.value)}
-                                                        className="text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                                                        className="text-sm px-2 py-1 border border-gray-300 rounded"
                                                     />
                                                     <span className="text-gray-400">a</span>
                                                     <input
                                                         type="time"
                                                         value={descanso.horaFin}
                                                         onChange={(e) => handleChangeDescanso(index, dIndex, 'horaFin', e.target.value)}
-                                                        className="text-sm px-2 py-1 border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700 dark:text-white"
+                                                        className="text-sm px-2 py-1 border border-gray-300 rounded"
                                                     />
                                                     <button
                                                         onClick={() => handleRemoveDescanso(index, dIndex)}

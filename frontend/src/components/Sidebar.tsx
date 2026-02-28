@@ -24,12 +24,12 @@ export default function Sidebar() {
     if (!user) return null;
 
     return (
-        <div className="flex flex-col w-64 bg-gray-900 border-r border-gray-800 text-white min-h-screen pt-5 pb-4">
-            <div className="flex items-center flex-shrink-0 px-6 font-bold text-xl tracking-wider mb-8">
+        <div className="flex flex-col w-64 bg-white border-r border-slate-100 text-slate-900 min-h-screen pt-5 pb-4 shadow-sm">
+            <div className="flex items-center flex-shrink-0 px-6 font-black text-2xl tracking-tight mb-8 text-slate-900">
                 SaaS Barber
             </div>
             <div className="mt-5 flex-grow flex flex-col">
-                <nav className="flex-1 px-4 space-y-2 bg-gray-900" aria-label="Sidebar">
+                <nav className="flex-1 px-4 space-y-2 bg-white" aria-label="Sidebar">
                     {navigation.map((item) => {
                         const isActive = pathname.startsWith(item.href) &&
                             (item.href === '/dashboard' ? pathname === '/dashboard' : true);
@@ -39,15 +39,15 @@ export default function Sidebar() {
                                 key={item.name}
                                 href={item.href}
                                 className={`
-                  group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors
-                  ${isActive
-                                        ? 'bg-blue-600 text-white'
-                                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                    group flex items-center px-4 py-3 text-sm font-bold rounded-2xl transition-all
+                                    ${isActive
+                                        ? 'bg-slate-900 text-white shadow-lg shadow-slate-200 scale-[1.02]'
+                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                                     }
-                `}
+                                `}
                             >
                                 <item.icon
-                                    className={`flex-shrink-0 -ml-1 mr-3 h-5 w-5 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-300'}`}
+                                    className={`flex-shrink-0 -ml-1 mr-3 h-5 w-5 transition-colors ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'}`}
                                     aria-hidden="true"
                                 />
                                 <span className="truncate">{item.name}</span>
@@ -56,14 +56,14 @@ export default function Sidebar() {
                     })}
                 </nav>
             </div>
-            <div className="flex-shrink-0 flex border-t border-gray-800 p-4">
+            <div className="flex-shrink-0 flex border-t border-slate-50 p-4">
                 <button
                     onClick={logout}
-                    className="flex-shrink-0 w-full group block bg-gray-800 rounded-lg p-3 hover:bg-red-600 transition-colors"
+                    className="flex-shrink-0 w-full group block bg-slate-50 rounded-2xl p-4 hover:bg-red-50 transition-all border border-slate-100 hover:border-red-100"
                 >
                     <div className="flex items-center">
-                        <LogOut className="inline-block h-5 w-5 text-gray-400 group-hover:text-white mr-3" />
-                        <div className="text-sm font-medium text-gray-300 group-hover:text-white">
+                        <LogOut className="inline-block h-5 w-5 text-slate-400 group-hover:text-red-500 mr-3 transition-colors" />
+                        <div className="text-sm font-bold text-slate-600 group-hover:text-red-600 transition-colors">
                             Cerrar Sesión
                         </div>
                     </div>

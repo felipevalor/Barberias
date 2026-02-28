@@ -90,7 +90,7 @@ export default function Modal({
             {/* Modal Container */}
             <div
                 className={cn(
-                    "relative bg-white dark:bg-slate-900 rounded-[28px] shadow-2xl w-full border border-slate-100 dark:border-slate-800 flex flex-col transition-all duration-300 ease-out transform",
+                    "relative bg-white rounded-[28px] shadow-2xl w-full border border-slate-100 flex flex-col transition-all duration-300 ease-out transform",
                     maxWidthClasses[maxWidth],
                     isAnimateIn ? "translate-y-0 scale-100" : "translate-y-8 scale-95",
                     className
@@ -102,7 +102,7 @@ export default function Modal({
                     <div className="flex justify-between items-center p-6 pb-2">
                         <div className="flex-1">
                             {title && (
-                                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                                <h3 className="text-xl font-bold text-slate-900">
                                     {title}
                                 </h3>
                             )}
@@ -110,7 +110,7 @@ export default function Modal({
                         {showCloseButton && (
                             <button
                                 onClick={onClose}
-                                className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 p-2"
+                                className="text-slate-400 hover:text-slate-900 transition-all rounded-xl hover:bg-slate-50 p-2"
                                 aria-label="Cerrar"
                             >
                                 <X className="w-5 h-5" />
@@ -126,7 +126,7 @@ export default function Modal({
 
                 {/* Footer */}
                 {footer && (
-                    <div className="p-6 pt-2 border-t border-slate-50 dark:border-slate-800/50 flex items-center gap-3">
+                    <div className="p-6 pt-2 border-t border-slate-50 flex items-center gap-3">
                         {footer}
                     </div>
                 )}

@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "linkedin-mcp-runner": "^1.5.0"
+  },
+  "_npx": {
+    "packages": [
+      "linkedin-mcp-runner"
+    ]
+  }
+}

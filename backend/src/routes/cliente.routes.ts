@@ -10,5 +10,6 @@ router.use(verifyToken);
 router.get('/', clienteController.getClientes.bind(clienteController));
 router.get('/:id', clienteController.getClienteDetalle.bind(clienteController));
 router.put('/:id', clienteController.updateCliente.bind(clienteController));
+router.delete('/:id', clienteController.deleteCliente.bind(clienteController));
 
 export default router;

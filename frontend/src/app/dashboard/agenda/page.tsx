@@ -245,7 +245,7 @@ export default function AgendaPage() {
         return (
             <div className="flex flex-col items-center justify-center h-[60vh]">
                 <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-gray-500 dark:text-gray-400 font-semibold animate-pulse">Cargando Agenda...</p>
+                <p className="text-gray-500 font-semibold animate-pulse">Cargando Agenda...</p>
             </div>
         );
     }
@@ -255,15 +255,15 @@ export default function AgendaPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                    <h2 className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">Agenda</h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">Agenda</h2>
+                    <p className="text-sm text-slate-500 mt-1">
                         {barberos.length} barbero{barberos.length !== 1 ? 's' : ''} activa{barberos.length !== 1 ? 's' : ''} · {turnos.length} turno{turnos.length !== 1 ? 's' : ''} agendado{turnos.length !== 1 ? 's' : ''}
                     </p>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <button
                         onClick={fetchData}
-                        className="p-2.5 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl transition-all shadow-sm"
+                        className="p-2.5 text-slate-500 hover:text-slate-900 bg-white border border-slate-200 rounded-xl transition-all shadow-sm"
                         title="Actualizar agenda"
                     >
                         <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -283,7 +283,7 @@ export default function AgendaPage() {
             </div>
 
             {/* Calendar */}
-            <div className="flex-1 bg-white dark:bg-slate-950 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-2 sm:p-4 overflow-hidden flex flex-col">
+            <div className="flex-1 bg-white rounded-2xl shadow-sm border border-slate-200 p-2 sm:p-4 overflow-hidden flex flex-col">
                 <DnDCalendar
                     localizer={localizer}
                     events={allEvents}
@@ -330,16 +330,16 @@ export default function AgendaPage() {
             {/* Leyenda de colores */}
             <div className="flex items-center gap-6 mt-6 px-4 flex-wrap">
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-slate-900 dark:bg-white"></div>
-                    <span className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider">Agendado</span>
+                    <div className="w-3 h-3 rounded-full bg-slate-900"></div>
+                    <span className="text-[11px] text-slate-600 font-semibold uppercase tracking-wider">Agendado</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-slate-200 dark:bg-slate-700"></div>
-                    <span className="text-[11px] text-slate-500 dark:text-slate-500 font-semibold uppercase tracking-wider">Finalizado</span>
+                    <div className="w-3 h-3 rounded-full bg-slate-200"></div>
+                    <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Finalizado</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-md bg-slate-50 border border-slate-100 dark:bg-slate-800 dark:border-slate-700" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px)' }}></div>
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Bloqueo / Descanso</span>
+                    <div className="w-3 h-3 rounded-md bg-slate-50 border border-slate-100" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 4px)' }}></div>
+                    <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">Bloqueo / Descanso</span>
                 </div>
             </div>
 

@@ -1,6 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import staffRoutes from './routes/staff.routes';
 import servicioRoutes from './routes/servicio.routes';
@@ -9,8 +11,7 @@ import clienteRoutes from './routes/cliente.routes';
 import posRoutes from './routes/pos.routes';
 import productoRoutes from './routes/producto.routes';
 import reporteRoutes from './routes/reporte.routes';
-
-dotenv.config();
+import dashboardRoutes from './routes/dashboard.routes';
 
 const app: Express = express();
 const port = process.env.PORT || 3001;
@@ -27,6 +28,7 @@ app.use('/api/clientes', clienteRoutes);
 app.use('/api/pos', posRoutes);
 app.use('/api/productos', productoRoutes);
 app.use('/api/reportes', reporteRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.get('/health', (req: Request, res: Response) => {
     res.send('Server is healthy');

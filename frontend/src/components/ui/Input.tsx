@@ -25,7 +25,7 @@ export default function Input({
             {label && (
                 <label
                     htmlFor={inputId}
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+                    className="block text-sm font-medium text-gray-700 mb-1.5"
                 >
                     {label}
                 </label>
@@ -47,8 +47,8 @@ export default function Input({
             focus:outline-none focus:ring-2
             sm:text-sm
             ${error
-                            ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500 dark:border-red-800 dark:bg-red-900/10'
-                            : 'border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white dark:bg-gray-800 focus:ring-blue-500 focus:border-blue-500'
+                            ? 'border-red-300 text-red-900 placeholder-red-300 focus:ring-red-500 focus:border-red-500'
+                            : 'border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500'
                         }
             ${className}
           `}
@@ -58,7 +58,7 @@ export default function Input({
                 />
             </div>
             {error && (
-                <p className="mt-1.5 text-sm text-red-600 dark:text-red-400" id={`${inputId}-error`}>
+                <p className="mt-1.5 text-sm text-red-600" id={`${inputId}-error`}>
                     {error}
                 </p>
             )}

@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@cocal/google-calendar-mcp": "^2.4.1"
+  },
+  "_npx": {
+    "packages": [
+      "@cocal/google-calendar-mcp"
+    ]
+  }
+}

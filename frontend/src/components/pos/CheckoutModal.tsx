@@ -111,9 +111,9 @@ export default function CheckoutModal({ isOpen, onClose, turno, onSuccess }: Che
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="checkout-modal-title">
-            <div className="bg-white dark:bg-gray-950 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col transform transition-all animate-in slide-in-from-bottom-4 duration-300" onClick={e => e.stopPropagation()}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col transform transition-all animate-in slide-in-from-bottom-4 duration-300" onClick={e => e.stopPropagation()}>
                 {/* Header */}
-                <div className="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800 bg-gradient-to-r from-green-600 to-emerald-700">
+                <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gradient-to-r from-green-600 to-emerald-700">
                     <h3 id="checkout-modal-title" className="text-xl font-black text-white flex items-center tracking-tight">
                         <DollarSign className="w-6 h-6 mr-2" />
                         Finalizar Cobro
@@ -125,16 +125,16 @@ export default function CheckoutModal({ isOpen, onClose, turno, onSuccess }: Che
 
                 <div className="p-6 space-y-6 overflow-y-auto max-h-[75vh]">
                     {error && (
-                        <div className="p-4 text-sm font-semibold text-red-700 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-900/30" role="alert">
+                        <div className="p-4 text-sm font-semibold text-red-700 bg-red-50 rounded-xl border border-red-100" role="alert">
                             {error}
                         </div>
                     )}
 
                     {/* Transaction Summary */}
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-5 border border-gray-100 dark:border-gray-800">
+                    <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
                         <div className="flex justify-between items-center mb-4">
-                            <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Resumen de Venta</span>
-                            <div className="flex items-center text-xs font-bold text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-100 dark:border-gray-700">
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Resumen de Venta</span>
+                            <div className="flex items-center text-xs font-bold text-gray-600 bg-white px-2 py-1 rounded-lg border border-gray-100">
                                 <ShoppingBag className="w-3 h-3 mr-1.5" />
                                 {turno.cliente?.nombre || 'Consumidor Final'}
                             </div>
@@ -142,16 +142,16 @@ export default function CheckoutModal({ isOpen, onClose, turno, onSuccess }: Che
                         <div className="space-y-2">
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-500 font-medium">Servicio: {turno.servicio?.nombre}</span>
-                                <span className="font-bold text-gray-900 dark:text-white">${montoBase}</span>
+                                <span className="font-bold text-gray-900">${montoBase}</span>
                             </div>
                             {Number(propina) > 0 && (
-                                <div className="flex justify-between items-center text-sm text-emerald-600 dark:text-emerald-400 font-bold">
+                                <div className="flex justify-between items-center text-sm text-emerald-600 font-bold">
                                     <span>Propina</span>
                                     <span>+${propina}</span>
                                 </div>
                             )}
                             {montoProductos > 0 && (
-                                <div className="flex justify-between items-center text-sm text-blue-600 dark:text-blue-400 font-bold">
+                                <div className="flex justify-between items-center text-sm text-blue-600 font-bold">
                                     <span>Productos ({selectedProductos.length})</span>
                                     <span>+${montoProductos}</span>
                                 </div>
@@ -162,13 +162,13 @@ export default function CheckoutModal({ isOpen, onClose, turno, onSuccess }: Che
                     {/* Payment & Products Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 flex items-center">
+                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center">
                                 <CreditCard className="w-3.5 h-3.5 mr-2 text-blue-500" /> Método de Pago
                             </label>
                             <select
                                 value={selectedMetodo}
                                 onChange={(e) => setSelectedMetodo(e.target.value)}
-                                className="w-full p-3.5 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all font-bold text-sm"
+                                className="w-full p-3.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all font-bold text-sm"
                             >
                                 {metodos.map(m => (
                                     <option key={m.id} value={m.id}>{m.nombre}</option>
@@ -190,11 +190,11 @@ export default function CheckoutModal({ isOpen, onClose, turno, onSuccess }: Che
 
                     {/* Product Selection */}
                     <div className="space-y-3">
-                        <label className="block text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest flex items-center">
+                        <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center">
                             <PackagePlus className="w-3.5 h-3.5 mr-2 text-amber-500" /> Productos Adicionales
                         </label>
                         <select
-                            className="w-full p-3.5 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm font-medium"
+                            className="w-full p-3.5 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all text-sm font-medium"
                             onChange={(e) => {
                                 if (e.target.value) {
                                     const p = productos.find(x => x.id === e.target.value);
@@ -217,18 +217,18 @@ export default function CheckoutModal({ isOpen, onClose, turno, onSuccess }: Che
                     {selectedProductos.length > 0 && (
                         <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
                             {selectedProductos.map(p => (
-                                <div key={p.id} className="flex justify-between items-center bg-gray-50 dark:bg-gray-900 p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+                                <div key={p.id} className="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
                                     <div className="flex items-center">
-                                        <div className="w-8 h-8 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center font-black text-xs text-blue-600 dark:text-blue-400 mr-3 border border-gray-100 dark:border-gray-700">
+                                        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center font-black text-xs text-blue-600 mr-3 border border-gray-100">
                                             {p.cantidad}x
                                         </div>
-                                        <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{p.nombre}</span>
+                                        <span className="text-sm font-bold text-gray-700">{p.nombre}</span>
                                     </div>
                                     <div className="flex items-center">
-                                        <span className="text-sm font-black text-gray-900 dark:text-white mr-4">${p.precio * p.cantidad}</span>
+                                        <span className="text-sm font-black text-gray-900 mr-4">${p.precio * p.cantidad}</span>
                                         <button
                                             onClick={() => removeProducto(p.id)}
-                                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                             title="Quitar"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -260,11 +260,11 @@ export default function CheckoutModal({ isOpen, onClose, turno, onSuccess }: Che
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/30 flex flex-col-reverse sm:flex-row justify-end space-y-3 space-y-reverse sm:space-y-0 sm:space-x-4">
+                <div className="p-6 border-t border-gray-100 bg-gray-50 flex flex-col-reverse sm:flex-row justify-end space-y-3 space-y-reverse sm:space-y-0 sm:space-x-4">
                     <button
                         onClick={onClose}
                         disabled={loading}
-                        className="w-full sm:w-auto px-6 py-3 text-gray-600 dark:text-gray-400 font-bold hover:text-gray-900 dark:hover:text-white transition-colors uppercase tracking-widest text-xs"
+                        className="w-full sm:w-auto px-6 py-3 text-gray-600 font-bold hover:text-gray-900 transition-colors uppercase tracking-widest text-xs"
                     >
                         Cancelar
                     </button>

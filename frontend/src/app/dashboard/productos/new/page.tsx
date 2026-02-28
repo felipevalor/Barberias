@@ -4,7 +4,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
-import { ArrowLeft, Package, DollarSign, Save } from 'lucide-react';
+import { ChevronLeft, Package, DollarSign, Layers, BellRing, Save } from 'lucide-react';
+import toast from 'react-hot-toast';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export default function NewProductoPage() {
     const router = useRouter();
@@ -33,7 +38,7 @@ export default function NewProductoPage() {
                 stockMinimo: parseInt(formData.stockMinimo)
             };
 
-            const res = await fetch('http://localhost:3001/api/productos', {
+            const res = await fetch(`${API}/productos`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -47,108 +52,119 @@ export default function NewProductoPage() {
                 throw new Error(errorData.error || 'Error al crear producto');
             }
 
+            toast.success('Producto creado exitosamente');
             router.push('/dashboard/productos');
         } catch (err: any) {
             setError(err.message);
+            toast.error(err.message || 'Error al crear producto');
+        } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="max-w-2xl mx-auto pb-12">
-            <div className="mb-6 flex space-x-4 items-center">
-                <Link href="/dashboard/productos" className="p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50">
-                    <ArrowLeft className="w-5 h-5" />
+        <div className="max-w-3xl mx-auto space-y-8 pb-12">
+            <div>
+                <Link
+                    href="/dashboard/productos"
+                    className="inline-flex items-center text-sm font-bold text-slate-400 hover:text-indigo-600 transition-colors mb-4 group"
+                >
+                    <ChevronLeft className="w-4 h-4 mr-1 transition-transform group-hover:-translate-x-1" />
+                    Volver al inventario
                 </Link>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Nuevo Producto</h2>
+                <div className="flex items-center">
+                    <div className="bg-indigo-600 p-3 rounded-2xl mr-4 shadow-indigo-200 shadow-lg mt-0.5">
+                        <Package className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Nuevo Producto</h2>
+                        <p className="text-slate-500 font-medium">Añade un artículo a tu catálogo de ventas.</p>
+                    </div>
+                </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-                <div className="p-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 flex items-center">
-                    <Package className="w-5 h-5 mr-3 text-blue-600" />
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Información del Artículo</h3>
-                </div>
+            <div className="bg-white border border-slate-200 rounded-[2rem] p-8 md:p-10 shadow-sm">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    {error && (
+                        <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-sm font-semibold flex items-center">
+                            <span className="w-1.5 h-1.5 bg-red-600 rounded-full mr-3 animate-pulse"></span>
+                            {error}
+                        </div>
+                    )}
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                    {error && <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm">{error}</div>}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <div className="md:col-span-2">
+                            <Input
+                                label="Nombre del Producto"
+                                required
+                                leftIcon={<Package className="w-4 h-4" />}
+                                placeholder="Ej. Cera Mate Fijación Fuerte"
+                                value={formData.nombre}
+                                onChange={e => setFormData({ ...formData, nombre: e.target.value })}
+                            />
+                        </div>
 
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Nombre del Producto</label>
-                        <input
-                            type="text"
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Descripción (Opcional)</label>
+                            <textarea
+                                value={formData.descripcion}
+                                onChange={e => setFormData({ ...formData, descripcion: e.target.value })}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 placeholder-gray-400 transition-all duration-200"
+                                placeholder="Detalles particulares del artículo, uso, marca..."
+                                rows={3}
+                            />
+                        </div>
+
+                        <Input
+                            label="Precio Venta ($)"
+                            type="number"
+                            min="0"
+                            step="0.01"
                             required
-                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white dark:bg-gray-700 dark:focus:bg-gray-600 dark:text-white transition-colors"
-                            placeholder="Ej. Cera Mate Fijación Fuerte"
-                            value={formData.nombre}
-                            onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                            leftIcon={<DollarSign className="w-4 h-4" />}
+                            placeholder="0.00"
+                            value={formData.precioVenta}
+                            onChange={e => setFormData({ ...formData, precioVenta: e.target.value })}
                         />
-                    </div>
 
-                    <div>
-                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Descripción (Opcional)</label>
-                        <textarea
-                            rows={3}
-                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white dark:bg-gray-700 dark:focus:bg-gray-600 dark:text-white transition-colors"
-                            placeholder="Detalles sobre el producto..."
-                            value={formData.descripcion}
-                            onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="md:col-span-1">
-                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Precio Venta</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <DollarSign className="w-5 h-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    required
-                                    min="0"
-                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white dark:bg-gray-700 dark:focus:bg-gray-600 dark:text-white transition-colors font-semibold"
-                                    placeholder="0.00"
-                                    value={formData.precioVenta}
-                                    onChange={(e) => setFormData({ ...formData, precioVenta: e.target.value })}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="md:col-span-1">
-                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Stock Inicial</label>
-                            <input
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input
+                                label="Stock Inicial"
                                 type="number"
-                                required
                                 min="0"
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white dark:bg-gray-700 dark:focus:bg-gray-600 dark:text-white transition-colors"
+                                required
+                                leftIcon={<Layers className="w-4 h-4" />}
                                 value={formData.stockActual}
-                                onChange={(e) => setFormData({ ...formData, stockActual: e.target.value })}
+                                onChange={e => setFormData({ ...formData, stockActual: e.target.value })}
                             />
-                        </div>
 
-                        <div className="md:col-span-1">
-                            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Alerta Stock Mínimo</label>
-                            <input
+                            <Input
+                                label="Alerta Mínimo"
                                 type="number"
-                                required
                                 min="0"
-                                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-gray-50 focus:bg-white dark:bg-gray-700 dark:focus:bg-gray-600 dark:text-white transition-colors"
+                                required
+                                leftIcon={<BellRing className="w-4 h-4" />}
                                 value={formData.stockMinimo}
-                                onChange={(e) => setFormData({ ...formData, stockMinimo: e.target.value })}
+                                onChange={e => setFormData({ ...formData, stockMinimo: e.target.value })}
                             />
                         </div>
                     </div>
 
-                    <div className="pt-6 border-t border-gray-100 dark:border-gray-700 flex justify-end">
-                        <button
+                    <div className="pt-8 border-t border-slate-100 flex flex-col-reverse sm:flex-row justify-end gap-3">
+                        <Link href="/dashboard/productos" className="w-full sm:w-auto">
+                            <Button variant="secondary" fullWidth className="h-12 px-8">
+                                Cancelar
+                            </Button>
+                        </Link>
+                        <Button
                             type="submit"
-                            disabled={loading}
-                            className="bg-blue-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-blue-700 transition flex items-center disabled:opacity-50"
+                            isLoading={loading}
+                            fullWidth
+                            leftIcon={<Save className="w-4 h-4" />}
+                            className="h-12 px-10 bg-indigo-600 hover:bg-indigo-700 group"
                         >
-                            <Save className="w-5 h-5 mr-2" />
-                            {loading ? 'Guardando...' : 'Crear Producto'}
-                        </button>
+                            Confirmar y Crear
+                        </Button>
                     </div>
                 </form>
             </div>
